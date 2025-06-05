@@ -14,9 +14,10 @@ interface WinnersListProps {
   currentPrize: Prize;
   allPrizes: Prize[];
   winnerColor: string;
+  cardBgColor: string;
 }
 
-const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps) => {
+const WinnersList = ({ currentPrize, allPrizes, winnerColor, cardBgColor }: WinnersListProps) => {
   const getIcon = (prizeName: string) => {
     if (prizeName.includes('Nhất')) return <Crown className="text-yellow-500" size={20} />;
     if (prizeName.includes('Nhì')) return <Trophy className="text-gray-400" size={20} />;
@@ -27,13 +28,13 @@ const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps)
   return (
     <div className="space-y-4">
       {/* Current Prize Winners */}
-      <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+      <Card className="backdrop-blur-sm shadow-xl border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             {getIcon(currentPrize.name)}
             Người thắng {currentPrize.name}
           </CardTitle>
-          <Badge variant="outline" className="w-fit">
+          <Badge variant="outline" className="w-fit border-violet-300 text-violet-600">
             {currentPrize.winners.length}/{currentPrize.quantity}
           </Badge>
         </CardHeader>
@@ -43,7 +44,7 @@ const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps)
               {currentPrize.winners.map((winner, index) => (
                 <div
                   key={index}
-                  className="p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200"
+                  className="p-3 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
                     <span 
@@ -52,7 +53,7 @@ const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps)
                     >
                       {winner}
                     </span>
-                    <Badge className="bg-pink-500 text-white">
+                    <Badge className="bg-gradient-to-r from-violet-500 to-pink-500 text-white border-0">
                       #{index + 1}
                     </Badge>
                   </div>
@@ -69,7 +70,7 @@ const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps)
       </Card>
 
       {/* All Prizes Summary */}
-      <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+      <Card className="backdrop-blur-sm shadow-xl border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Tổng kết giải thưởng</CardTitle>
         </CardHeader>
@@ -80,7 +81,7 @@ const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps)
                 key={prize.id}
                 className={`p-3 rounded-lg border transition-all duration-200 ${
                   prize.id === currentPrize.id
-                    ? 'bg-pink-100 border-pink-300 shadow-sm'
+                    ? 'bg-gradient-to-r from-violet-100 to-pink-100 border-violet-300 shadow-sm'
                     : 'bg-gray-50 border-gray-200'
                 }`}
               >
@@ -91,7 +92,7 @@ const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps)
                   </div>
                   <Badge 
                     variant={prize.winners.length === prize.quantity ? "default" : "outline"}
-                    className={prize.winners.length === prize.quantity ? "bg-green-500" : ""}
+                    className={prize.winners.length === prize.quantity ? "bg-green-500 border-0" : "border-gray-300"}
                   >
                     {prize.winners.length}/{prize.quantity}
                   </Badge>
