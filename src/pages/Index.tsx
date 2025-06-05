@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import WinnersList from '@/components/WinnersList';
@@ -67,6 +68,9 @@ const Index = () => {
   const [winnerLabel, setWinnerLabel] = useState('Người chiến thắng');
   const [drawButtonText, setDrawButtonText] = useState('Quay số');
   const [drawingText, setDrawingText] = useState('Đang quay...');
+
+  // Settings collapsible state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const startDrawing = () => {
     const availableUsers = users.filter(user => 
@@ -277,71 +281,15 @@ const Index = () => {
               </CardContent>
             </Card>
             
-            {/* Control Buttons & Customization */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Export Button */}
+            <div className="flex justify-center">
               <Button
                 onClick={exportResults}
-                className="h-14 text-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl shadow-lg border-0"
+                className="h-14 text-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl shadow-lg border-0 px-8"
               >
                 <Download className="mr-2" size={20} />
                 Xuất kết quả
               </Button>
-              
-              {/* Quick Customization */}
-              <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Settings size={16} />
-                    Tùy chỉnh nhanh
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Màu nền</Label>
-                    <input
-                      type="color"
-                      value={backgroundColor}
-                      onChange={(e) => setBackgroundColor(e.target.value)}
-                      className="w-full h-8 rounded-lg border-2 border-gray-200 cursor-pointer"
-                    />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label className="text-xs">Màu thẻ</Label>
-                    <input
-                      type="color"
-                      value={cardBgColor}
-                      onChange={(e) => setCardBgColor(e.target.value)}
-                      className="w-full h-8 rounded-lg border-2 border-gray-200 cursor-pointer"
-                    />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label className="text-xs">Màu giải</Label>
-                    <input
-                      type="color"
-                      value={prizeColor}
-                      onChange={(e) => setPrizeColor(e.target.value)}
-                      className="w-full h-8 rounded-lg border-2 border-gray-200 cursor-pointer"
-                    />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label className="text-xs">Font chữ</Label>
-                    <Select value={fontFamily} onValueChange={setFontFamily}>
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Inter">Inter</SelectItem>
-                        <SelectItem value="Roboto">Roboto</SelectItem>
-                        <SelectItem value="Poppins">Poppins</SelectItem>
-                        <SelectItem value="Nunito">Nunito</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
           
@@ -354,144 +302,222 @@ const Index = () => {
               winnerColor={winnerColor}
               cardBgColor={cardBgColor}
             />
-            
-            {/* File Upload Data Management */}
-            <Card className="backdrop-blur-sm shadow-xl border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Upload size={20} />
-                  Upload dữ liệu
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="users" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-violet-100 to-pink-100 rounded-lg">
-                    <TabsTrigger value="users" className="data-[state=active]:bg-violet-500 data-[state=active]:text-white rounded-md">
-                      <Users size={16} className="mr-1" />
-                      Người dùng ({users.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="prizes" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-md">
-                      <Gift size={16} className="mr-1" />
-                      Giải thưởng ({prizes.length})
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="users" className="space-y-4">
-                    <div className="border-2 border-dashed border-violet-300 rounded-xl p-6 text-center bg-violet-50/50">
-                      <FileText className="mx-auto mb-2 text-violet-400" size={32} />
-                      <p className="text-sm text-gray-600 mb-3">Tải lên file .txt danh sách người dùng</p>
-                      <input
-                        type="file"
-                        accept=".txt"
-                        onChange={(e) => handleFileUpload(e, 'users')}
-                        className="hidden"
-                        id="users-file"
-                      />
-                      <Button asChild className="bg-violet-500 hover:bg-violet-600 text-white border-0">
-                        <label htmlFor="users-file" className="cursor-pointer">
-                          <Upload size={16} className="mr-2" />
-                          Chọn file
-                        </label>
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500">Mỗi dòng một tên người dùng</p>
-                  </TabsContent>
-                  
-                  <TabsContent value="prizes" className="space-y-4">
-                    <div className="border-2 border-dashed border-pink-300 rounded-xl p-6 text-center bg-pink-50/50">
-                      <FileText className="mx-auto mb-2 text-pink-400" size={32} />
-                      <p className="text-sm text-gray-600 mb-3">Tải lên file .txt danh sách giải thưởng</p>
-                      <input
-                        type="file"
-                        accept=".txt"
-                        onChange={(e) => handleFileUpload(e, 'prizes')}
-                        className="hidden"
-                        id="prizes-file"
-                      />
-                      <Button asChild className="bg-pink-500 hover:bg-pink-600 text-white border-0">
-                        <label htmlFor="prizes-file" className="cursor-pointer">
-                          <Upload size={16} className="mr-2" />
-                          Chọn file
-                        </label>
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500">Ví dụ: Giải Nhất (1), Giải Nhì (2)</p>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-
-            {/* Text Customization */}
-            <Card className="backdrop-blur-sm shadow-xl border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Settings size={20} />
-                  Tùy chỉnh text
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <Label className="text-sm">Tiêu đề ứng dụng</Label>
-                    <Input 
-                      value={appTitle} 
-                      onChange={(e) => setAppTitle(e.target.value)}
-                      className="bg-gray-50 border-gray-200 rounded-lg"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm">Mô tả</Label>
-                    <Input 
-                      value={appSubtitle} 
-                      onChange={(e) => setAppSubtitle(e.target.value)}
-                      className="bg-gray-50 border-gray-200 rounded-lg"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-xs">Nhãn số may mắn</Label>
-                      <Input 
-                        value={luckyNumberLabel} 
-                        onChange={(e) => setLuckyNumberLabel(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Nhãn người thắng</Label>
-                      <Input 
-                        value={winnerLabel} 
-                        onChange={(e) => setWinnerLabel(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-xs">Text nút quay</Label>
-                      <Input 
-                        value={drawButtonText} 
-                        onChange={(e) => setDrawButtonText(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs">Text đang quay</Label>
-                      <Input 
-                        value={drawingText} 
-                        onChange={(e) => setDrawingText(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
+        </div>
+
+        {/* Settings Section - Collapsible */}
+        <div className="mt-16">
+          <Collapsible open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border-2 border-gray-200 rounded-xl shadow-lg transition-all duration-300"
+              >
+                <Settings className="mr-3" size={24} />
+                Cài đặt
+                <ChevronDown 
+                  className={`ml-3 transition-transform duration-300 ${isSettingsOpen ? 'rotate-180' : ''}`} 
+                  size={24} 
+                />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-6 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Quick Customization */}
+                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Settings size={20} />
+                      Tùy chỉnh nhanh
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm">Màu nền</Label>
+                      <input
+                        type="color"
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm">Màu thẻ</Label>
+                      <input
+                        type="color"
+                        value={cardBgColor}
+                        onChange={(e) => setCardBgColor(e.target.value)}
+                        className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm">Màu giải</Label>
+                      <input
+                        type="color"
+                        value={prizeColor}
+                        onChange={(e) => setPrizeColor(e.target.value)}
+                        className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-sm">Font chữ</Label>
+                      <Select value={fontFamily} onValueChange={setFontFamily}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Inter">Inter</SelectItem>
+                          <SelectItem value="Roboto">Roboto</SelectItem>
+                          <SelectItem value="Poppins">Poppins</SelectItem>
+                          <SelectItem value="Nunito">Nunito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* File Upload Data Management */}
+                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Upload size={20} />
+                      Upload dữ liệu
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="users" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-violet-100 to-pink-100 rounded-lg">
+                        <TabsTrigger value="users" className="data-[state=active]:bg-violet-500 data-[state=active]:text-white rounded-md">
+                          <Users size={16} className="mr-1" />
+                          Người dùng ({users.length})
+                        </TabsTrigger>
+                        <TabsTrigger value="prizes" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-md">
+                          <Gift size={16} className="mr-1" />
+                          Giải thưởng ({prizes.length})
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="users" className="space-y-4">
+                        <div className="border-2 border-dashed border-violet-300 rounded-xl p-4 text-center bg-violet-50/50">
+                          <FileText className="mx-auto mb-2 text-violet-400" size={24} />
+                          <p className="text-xs text-gray-600 mb-2">Tải lên file .txt danh sách người dùng</p>
+                          <input
+                            type="file"
+                            accept=".txt"
+                            onChange={(e) => handleFileUpload(e, 'users')}
+                            className="hidden"
+                            id="users-file"
+                          />
+                          <Button asChild size="sm" className="bg-violet-500 hover:bg-violet-600 text-white border-0">
+                            <label htmlFor="users-file" className="cursor-pointer">
+                              <Upload size={14} className="mr-1" />
+                              Chọn file
+                            </label>
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">Mỗi dòng một tên người dùng</p>
+                      </TabsContent>
+                      
+                      <TabsContent value="prizes" className="space-y-4">
+                        <div className="border-2 border-dashed border-pink-300 rounded-xl p-4 text-center bg-pink-50/50">
+                          <FileText className="mx-auto mb-2 text-pink-400" size={24} />
+                          <p className="text-xs text-gray-600 mb-2">Tải lên file .txt danh sách giải thưởng</p>
+                          <input
+                            type="file"
+                            accept=".txt"
+                            onChange={(e) => handleFileUpload(e, 'prizes')}
+                            className="hidden"
+                            id="prizes-file"
+                          />
+                          <Button asChild size="sm" className="bg-pink-500 hover:bg-pink-600 text-white border-0">
+                            <label htmlFor="prizes-file" className="cursor-pointer">
+                              <Upload size={14} className="mr-1" />
+                              Chọn file
+                            </label>
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">Ví dụ: Giải Nhất (1), Giải Nhì (2)</p>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+
+                {/* Text Customization */}
+                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <FileText size={20} />
+                      Tùy chỉnh text
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <Label className="text-sm">Tiêu đề ứng dụng</Label>
+                        <Input 
+                          value={appTitle} 
+                          onChange={(e) => setAppTitle(e.target.value)}
+                          className="bg-gray-50 border-gray-200 rounded-lg"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm">Mô tả</Label>
+                        <Input 
+                          value={appSubtitle} 
+                          onChange={(e) => setAppSubtitle(e.target.value)}
+                          className="bg-gray-50 border-gray-200 rounded-lg"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Nhãn số may mắn</Label>
+                          <Input 
+                            value={luckyNumberLabel} 
+                            onChange={(e) => setLuckyNumberLabel(e.target.value)}
+                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs">Nhãn người thắng</Label>
+                          <Input 
+                            value={winnerLabel} 
+                            onChange={(e) => setWinnerLabel(e.target.value)}
+                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Text nút quay</Label>
+                          <Input 
+                            value={drawButtonText} 
+                            onChange={(e) => setDrawButtonText(e.target.value)}
+                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs">Text đang quay</Label>
+                          <Input 
+                            value={drawingText} 
+                            onChange={(e) => setDrawingText(e.target.value)}
+                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
     </div>
