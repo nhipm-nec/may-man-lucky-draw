@@ -1,0 +1,119 @@
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Trophy, Crown, Medal, Award } from 'lucide-react';
+
+interface Prize {
+  id: string;
+  name: string;
+  quantity: number;
+  winners: string[];
+}
+
+interface WinnersListProps {
+  currentPrize: Prize;
+  allPrizes: Prize[];
+  winnerColor: string;
+}
+
+const WinnersList = ({ currentPrize, allPrizes, winnerColor }: WinnersListProps) => {
+  const getIcon = (prizeName: string) => {
+    if (prizeName.includes('Nhất')) return <Crown className="text-yellow-500" size={20} />;
+    if (prizeName.includes('Nhì')) return <Trophy className="text-gray-400" size={20} />;
+    if (prizeName.includes('Ba')) return <Medal className="text-amber-600" size={20} />;
+    return <Award className="text-blue-500" size={20} />;
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Current Prize Winners */}
+      <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {getIcon(currentPrize.name)}
+            Người thắng {currentPrize.name}
+          </CardTitle>
+          <Badge variant="outline" className="w-fit">
+            {currentPrize.winners.length}/{currentPrize.quantity}
+          </Badge>
+        </CardHeader>
+        <CardContent>
+          {currentPrize.winners.length > 0 ? (
+            <div className="space-y-2">
+              {currentPrize.winners.map((winner, index) => (
+                <div
+                  key={index}
+                  className="p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200"
+                >
+                  <div className="flex items-center justify-between">
+                    <span 
+                      className="font-semibold"
+                      style={{ color: winnerColor }}
+                    >
+                      {winner}
+                    </span>
+                    <Badge className="bg-pink-500 text-white">
+                      #{index + 1}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Award size={32} className="mx-auto mb-2 opacity-50" />
+              <p>Chưa có người thắng</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* All Prizes Summary */}
+      <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Tổng kết giải thưởng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {allPrizes.map(prize => (
+              <div
+                key={prize.id}
+                className={`p-3 rounded-lg border transition-all duration-200 ${
+                  prize.id === currentPrize.id
+                    ? 'bg-pink-100 border-pink-300 shadow-sm'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {getIcon(prize.name)}
+                    <span className="font-medium text-sm">{prize.name}</span>
+                  </div>
+                  <Badge 
+                    variant={prize.winners.length === prize.quantity ? "default" : "outline"}
+                    className={prize.winners.length === prize.quantity ? "bg-green-500" : ""}
+                  >
+                    {prize.winners.length}/{prize.quantity}
+                  </Badge>
+                </div>
+                
+                {prize.winners.length > 0 && (
+                  <div className="space-y-1">
+                    {prize.winners.map((winner, index) => (
+                      <div key={index} className="text-xs text-gray-600 flex items-center gap-1">
+                        <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                        {winner}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default WinnersList;
