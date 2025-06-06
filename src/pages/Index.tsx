@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,10 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown } from 'lucide-react';
+import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import WinnersList from '@/components/WinnersList';
+import * as XLSX from 'xlsx';
 
 interface Prize {
   id: string;
@@ -22,6 +24,7 @@ interface User {
   id: string;
   name: string;
   phone?: string;
+  department?: string; // Adding department field
 }
 
 const Index = () => {
@@ -152,45 +155,74 @@ const Index = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'users' | 'prizes') => {
     const file = event.target.files?.[0];
     if (!file) return;
-
+    
     const reader = new FileReader();
     reader.onload = (e) => {
-      const content = e.target?.result as string;
-      const lines = content.split('\n').filter(line => line.trim());
-      
-      if (type === 'users') {
-        const newUsers = lines.map((line, index) => ({
-          id: `user-${Date.now()}-${index}`,
-          name: line.trim()
-        }));
-        setUsers(newUsers);
-        toast.success(`Đã tải lên ${newUsers.length} người dùng!`);
-      } else {
-        const newPrizes = lines.map((line, index) => {
-          const match = line.match(/^(.+?)\s*\((\d+)\)$/);
-          if (match) {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Get the first worksheet
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Convert to JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        if (jsonData.length === 0) {
+          toast.error('File trống hoặc không đúng định dạng!');
+          return;
+        }
+        
+        if (type === 'users') {
+          // Check if the file has the required columns
+          const firstRow = jsonData[0] as any;
+          if (!('số' in firstRow) || !('tên' in firstRow) || !('bộ phận' in firstRow)) {
+            toast.error('File người dùng phải có các cột: số, tên, bộ phận!');
+            return;
+          }
+          
+          const newUsers = jsonData.map((row: any, index) => ({
+            id: `user-${Date.now()}-${index}`,
+            name: row['tên'] || 'Không có tên',
+            phone: row['số']?.toString() || '',
+            department: row['bộ phận'] || ''
+          }));
+          
+          setUsers(newUsers);
+          toast.success(`Đã tải lên ${newUsers.length} người dùng!`);
+        } else {
+          // Check if the file has the required columns
+          const firstRow = jsonData[0] as any;
+          if (!('tên giải thưởng' in firstRow) || !('số lần quay' in firstRow)) {
+            toast.error('File giải thưởng phải có các cột: tên giải thưởng, số lần quay!');
+            return;
+          }
+          
+          const newPrizes = jsonData.map((row: any, index) => {
+            const name = row['tên giải thưởng'] || 'Giải thưởng chưa đặt tên';
+            const quantity = parseInt(row['số lần quay']?.toString() || '1', 10);
+            
             return {
               id: `prize-${Date.now()}-${index}`,
-              name: line.trim(),
-              quantity: parseInt(match[2]),
+              name: `${name} (${quantity})`,
+              quantity: quantity,
               winners: []
             };
+          });
+          
+          setPrizes(newPrizes);
+          if (newPrizes.length > 0) {
+            setCurrentPrize(newPrizes[0]);
           }
-          return {
-            id: `prize-${Date.now()}-${index}`,
-            name: line.trim(),
-            quantity: 1,
-            winners: []
-          };
-        });
-        setPrizes(newPrizes);
-        if (newPrizes.length > 0) {
-          setCurrentPrize(newPrizes[0]);
+          toast.success(`Đã tải lên ${newPrizes.length} giải thưởng!`);
         }
-        toast.success(`Đã tải lên ${newPrizes.length} giải thưởng!`);
+      } catch (error) {
+        console.error('Error parsing Excel file:', error);
+        toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!');
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   };
 
   return (
@@ -384,7 +416,7 @@ const Index = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <Upload size={20} />
-                      Upload dữ liệu
+                      Upload dữ liệu Excel
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -402,11 +434,12 @@ const Index = () => {
                       
                       <TabsContent value="users" className="space-y-4">
                         <div className="border-2 border-dashed border-violet-300 rounded-xl p-4 text-center bg-violet-50/50">
-                          <FileText className="mx-auto mb-2 text-violet-400" size={24} />
-                          <p className="text-xs text-gray-600 mb-2">Tải lên file .txt danh sách người dùng</p>
+                          <FileSpreadsheet className="mx-auto mb-2 text-violet-400" size={24} />
+                          <p className="text-xs text-gray-600 mb-2">Tải lên file Excel (.xlsx) danh sách người dùng</p>
+                          <p className="text-xs text-gray-500 mb-2">Cần có các cột: số, tên, bộ phận</p>
                           <input
                             type="file"
-                            accept=".txt"
+                            accept=".xlsx"
                             onChange={(e) => handleFileUpload(e, 'users')}
                             className="hidden"
                             id="users-file"
@@ -414,20 +447,20 @@ const Index = () => {
                           <Button asChild size="sm" className="bg-violet-500 hover:bg-violet-600 text-white border-0">
                             <label htmlFor="users-file" className="cursor-pointer">
                               <Upload size={14} className="mr-1" />
-                              Chọn file
+                              Chọn file Excel
                             </label>
                           </Button>
                         </div>
-                        <p className="text-xs text-gray-500">Mỗi dòng một tên người dùng</p>
                       </TabsContent>
                       
                       <TabsContent value="prizes" className="space-y-4">
                         <div className="border-2 border-dashed border-pink-300 rounded-xl p-4 text-center bg-pink-50/50">
-                          <FileText className="mx-auto mb-2 text-pink-400" size={24} />
-                          <p className="text-xs text-gray-600 mb-2">Tải lên file .txt danh sách giải thưởng</p>
+                          <FileSpreadsheet className="mx-auto mb-2 text-pink-400" size={24} />
+                          <p className="text-xs text-gray-600 mb-2">Tải lên file Excel (.xlsx) danh sách giải thưởng</p>
+                          <p className="text-xs text-gray-500 mb-2">Cần có các cột: tên giải thưởng, số lần quay</p>
                           <input
                             type="file"
-                            accept=".txt"
+                            accept=".xlsx"
                             onChange={(e) => handleFileUpload(e, 'prizes')}
                             className="hidden"
                             id="prizes-file"
@@ -435,11 +468,10 @@ const Index = () => {
                           <Button asChild size="sm" className="bg-pink-500 hover:bg-pink-600 text-white border-0">
                             <label htmlFor="prizes-file" className="cursor-pointer">
                               <Upload size={14} className="mr-1" />
-                              Chọn file
+                              Chọn file Excel
                             </label>
                           </Button>
                         </div>
-                        <p className="text-xs text-gray-500">Ví dụ: Giải Nhất (1), Giải Nhì (2)</p>
                       </TabsContent>
                     </Tabs>
                   </CardContent>
