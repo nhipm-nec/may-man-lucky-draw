@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown, FileSpreadsheet, Plus, Trash2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import WinnersList from '@/components/WinnersList';
@@ -23,8 +22,7 @@ interface Prize {
 interface User {
   id: string;
   name: string;
-  phone?: string;
-  department?: string; // Adding department field
+  info?: string;
 }
 
 const Index = () => {
@@ -36,11 +34,11 @@ const Index = () => {
   });
   
   const [users, setUsers] = useState<User[]>([
-    { id: '1', name: 'Nguyễn Văn A', phone: '0123456789' },
-    { id: '2', name: 'Trần Thị B', phone: '0987654321' },
-    { id: '3', name: 'Lê Văn C', phone: '0345678901' },
-    { id: '4', name: 'Phạm Thị D', phone: '0567890123' },
-    { id: '5', name: 'Hoàng Văn E', phone: '0789012345' }
+    { id: '1', name: 'Nguyễn Văn A', info: 'Phòng IT' },
+    { id: '2', name: 'Trần Thị B', info: 'Phòng HR' },
+    { id: '3', name: 'Lê Văn C', info: 'Phòng Sales' },
+    { id: '4', name: 'Phạm Thị D', info: 'Phòng Marketing' },
+    { id: '5', name: 'Hoàng Văn E', info: 'Phòng Finance' }
   ]);
   
   const [prizes, setPrizes] = useState<Prize[]>([
@@ -54,6 +52,11 @@ const Index = () => {
   const [winnerName, setWinnerName] = useState<string>('');
   const [isDrawing, setIsDrawing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  
+  // Prize management states
+  const [newPrizeName, setNewPrizeName] = useState('');
+  const [newPrizeQuantity, setNewPrizeQuantity] = useState(1);
+  const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
   
   // Customization states
   const [backgroundColor, setBackgroundColor] = useState('#fef7ff'); // light purple
@@ -74,6 +77,88 @@ const Index = () => {
 
   // Settings collapsible state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Prize management functions
+  const addPrize = () => {
+    if (!newPrizeName.trim() || newPrizeQuantity < 1) {
+      toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!');
+      return;
+    }
+    
+    const newPrize: Prize = {
+      id: Date.now().toString(),
+      name: `${newPrizeName} (${newPrizeQuantity})`,
+      quantity: newPrizeQuantity,
+      winners: []
+    };
+    
+    setPrizes([...prizes, newPrize]);
+    setNewPrizeName('');
+    setNewPrizeQuantity(1);
+    toast.success('Đã thêm giải thưởng mới!');
+  };
+
+  const deletePrize = (prizeId: string) => {
+    if (prizes.length <= 1) {
+      toast.error('Phải có ít nhất một giải thưởng!');
+      return;
+    }
+    
+    const updatedPrizes = prizes.filter(p => p.id !== prizeId);
+    setPrizes(updatedPrizes);
+    
+    if (currentPrize.id === prizeId) {
+      setCurrentPrize(updatedPrizes[0]);
+    }
+    
+    toast.success('Đã xóa giải thưởng!');
+  };
+
+  const startEditPrize = (prize: Prize) => {
+    setEditingPrize(prize);
+    // Extract name and quantity from the formatted name
+    const match = prize.name.match(/^(.+)\s+\((\d+)\)$/);
+    if (match) {
+      setNewPrizeName(match[1]);
+      setNewPrizeQuantity(parseInt(match[2]));
+    } else {
+      setNewPrizeName(prize.name);
+      setNewPrizeQuantity(prize.quantity);
+    }
+  };
+
+  const saveEditPrize = () => {
+    if (!editingPrize || !newPrizeName.trim() || newPrizeQuantity < 1) {
+      toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!');
+      return;
+    }
+    
+    const updatedPrizes = prizes.map(p => 
+      p.id === editingPrize.id 
+        ? { ...p, name: `${newPrizeName} (${newPrizeQuantity})`, quantity: newPrizeQuantity }
+        : p
+    );
+    
+    setPrizes(updatedPrizes);
+    
+    if (currentPrize.id === editingPrize.id) {
+      const updatedCurrentPrize = updatedPrizes.find(p => p.id === editingPrize.id);
+      if (updatedCurrentPrize) {
+        setCurrentPrize(updatedCurrentPrize);
+      }
+    }
+    
+    setEditingPrize(null);
+    setNewPrizeName('');
+    setNewPrizeQuantity(1);
+    toast.success('Đã cập nhật giải thưởng!');
+  };
+
+  const cancelEditPrize = () => {
+    setEditingPrize(null);
+    setNewPrizeName('');
+    setNewPrizeQuantity(1);
+  };
 
   const startDrawing = () => {
     const availableUsers = users.filter(user => 
@@ -152,7 +237,7 @@ const Index = () => {
     toast.success('Đã xuất kết quả thành công!');
   };
   
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'users' | 'prizes') => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
@@ -174,49 +259,21 @@ const Index = () => {
           return;
         }
         
-        if (type === 'users') {
-          // Check if the file has the required columns
-          const firstRow = jsonData[0] as any;
-          if (!('số' in firstRow) || !('tên' in firstRow) || !('bộ phận' in firstRow)) {
-            toast.error('File người dùng phải có các cột: số, tên, bộ phận!');
-            return;
-          }
-          
-          const newUsers = jsonData.map((row: any, index) => ({
-            id: `user-${Date.now()}-${index}`,
-            name: row['tên'] || 'Không có tên',
-            phone: row['số']?.toString() || '',
-            department: row['bộ phận'] || ''
-          }));
-          
-          setUsers(newUsers);
-          toast.success(`Đã tải lên ${newUsers.length} người dùng!`);
-        } else {
-          // Check if the file has the required columns
-          const firstRow = jsonData[0] as any;
-          if (!('tên giải thưởng' in firstRow) || !('số lần quay' in firstRow)) {
-            toast.error('File giải thưởng phải có các cột: tên giải thưởng, số lần quay!');
-            return;
-          }
-          
-          const newPrizes = jsonData.map((row: any, index) => {
-            const name = row['tên giải thưởng'] || 'Giải thưởng chưa đặt tên';
-            const quantity = parseInt(row['số lần quay']?.toString() || '1', 10);
-            
-            return {
-              id: `prize-${Date.now()}-${index}`,
-              name: `${name} (${quantity})`,
-              quantity: quantity,
-              winners: []
-            };
-          });
-          
-          setPrizes(newPrizes);
-          if (newPrizes.length > 0) {
-            setCurrentPrize(newPrizes[0]);
-          }
-          toast.success(`Đã tải lên ${newPrizes.length} giải thưởng!`);
+        // Check if the file has the required columns
+        const firstRow = jsonData[0] as any;
+        if (!('ID' in firstRow) || !('Name' in firstRow) || !('Info' in firstRow)) {
+          toast.error('File người dùng phải có các cột: ID, Name, Info!');
+          return;
         }
+        
+        const newUsers = jsonData.map((row: any, index) => ({
+          id: row['ID']?.toString() || `user-${Date.now()}-${index}`,
+          name: row['Name'] || 'Không có tên',
+          info: row['Info'] || ''
+        }));
+        
+        setUsers(newUsers);
+        toast.success(`Đã tải lên ${newUsers.length} người dùng!`);
       } catch (error) {
         console.error('Error parsing Excel file:', error);
         toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!');
@@ -411,143 +468,184 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                {/* File Upload Data Management */}
+                {/* Prize Management */}
+                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Gift size={20} />
+                      Quản lý giải thưởng
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Add/Edit Prize Form */}
+                    <div className="space-y-3 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200">
+                      <div>
+                        <Label className="text-sm">Tên giải thưởng</Label>
+                        <Input
+                          value={newPrizeName}
+                          onChange={(e) => setNewPrizeName(e.target.value)}
+                          placeholder="Nhập tên giải thưởng"
+                          className="bg-white border-violet-200"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Số lượt quay</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={newPrizeQuantity}
+                          onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 1)}
+                          className="bg-white border-violet-200"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        {editingPrize ? (
+                          <>
+                            <Button onClick={saveEditPrize} size="sm" className="bg-green-500 hover:bg-green-600 text-white border-0">
+                              Lưu
+                            </Button>
+                            <Button onClick={cancelEditPrize} size="sm" variant="outline">
+                              Hủy
+                            </Button>
+                          </>
+                        ) : (
+                          <Button onClick={addPrize} size="sm" className="bg-violet-500 hover:bg-violet-600 text-white border-0">
+                            <Plus size={16} className="mr-1" />
+                            Thêm giải
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Prizes List */}
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {prizes.map(prize => (
+                        <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium">{prize.name}</span>
+                          <div className="flex gap-1">
+                            <Button
+                              onClick={() => startEditPrize(prize)}
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit size={12} />
+                            </Button>
+                            <Button
+                              onClick={() => deletePrize(prize.id)}
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 size={12} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* User Upload */}
                 <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <Upload size={20} />
-                      Upload dữ liệu Excel
+                      Upload người dùng
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Tabs defaultValue="users" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-violet-100 to-pink-100 rounded-lg">
-                        <TabsTrigger value="users" className="data-[state=active]:bg-violet-500 data-[state=active]:text-white rounded-md">
-                          <Users size={16} className="mr-1" />
-                          Người dùng ({users.length})
-                        </TabsTrigger>
-                        <TabsTrigger value="prizes" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white rounded-md">
-                          <Gift size={16} className="mr-1" />
-                          Giải thưởng ({prizes.length})
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="users" className="space-y-4">
-                        <div className="border-2 border-dashed border-violet-300 rounded-xl p-4 text-center bg-violet-50/50">
-                          <FileSpreadsheet className="mx-auto mb-2 text-violet-400" size={24} />
-                          <p className="text-xs text-gray-600 mb-2">Tải lên file Excel (.xlsx) danh sách người dùng</p>
-                          <p className="text-xs text-gray-500 mb-2">Cần có các cột: số, tên, bộ phận</p>
-                          <input
-                            type="file"
-                            accept=".xlsx"
-                            onChange={(e) => handleFileUpload(e, 'users')}
-                            className="hidden"
-                            id="users-file"
-                          />
-                          <Button asChild size="sm" className="bg-violet-500 hover:bg-violet-600 text-white border-0">
-                            <label htmlFor="users-file" className="cursor-pointer">
-                              <Upload size={14} className="mr-1" />
-                              Chọn file Excel
-                            </label>
-                          </Button>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="prizes" className="space-y-4">
-                        <div className="border-2 border-dashed border-pink-300 rounded-xl p-4 text-center bg-pink-50/50">
-                          <FileSpreadsheet className="mx-auto mb-2 text-pink-400" size={24} />
-                          <p className="text-xs text-gray-600 mb-2">Tải lên file Excel (.xlsx) danh sách giải thưởng</p>
-                          <p className="text-xs text-gray-500 mb-2">Cần có các cột: tên giải thưởng, số lần quay</p>
-                          <input
-                            type="file"
-                            accept=".xlsx"
-                            onChange={(e) => handleFileUpload(e, 'prizes')}
-                            className="hidden"
-                            id="prizes-file"
-                          />
-                          <Button asChild size="sm" className="bg-pink-500 hover:bg-pink-600 text-white border-0">
-                            <label htmlFor="prizes-file" className="cursor-pointer">
-                              <Upload size={14} className="mr-1" />
-                              Chọn file Excel
-                            </label>
-                          </Button>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
-
-                {/* Text Customization */}
-                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <FileText size={20} />
-                      Tùy chỉnh text
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 gap-3">
-                      <div>
-                        <Label className="text-sm">Tiêu đề ứng dụng</Label>
-                        <Input 
-                          value={appTitle} 
-                          onChange={(e) => setAppTitle(e.target.value)}
-                          className="bg-gray-50 border-gray-200 rounded-lg"
+                    <div className="space-y-4">
+                      <div className="border-2 border-dashed border-violet-300 rounded-xl p-4 text-center bg-violet-50/50">
+                        <FileSpreadsheet className="mx-auto mb-2 text-violet-400" size={24} />
+                        <p className="text-xs text-gray-600 mb-2">Tải lên file Excel (.xlsx) danh sách người dùng</p>
+                        <p className="text-xs text-gray-500 mb-2">Cần có các cột: ID, Name, Info</p>
+                        <p className="text-xs text-gray-400 mb-3">Hiện có {users.length} người dùng</p>
+                        <input
+                          type="file"
+                          accept=".xlsx"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                          id="users-file"
                         />
-                      </div>
-                      
-                      <div>
-                        <Label className="text-sm">Mô tả</Label>
-                        <Input 
-                          value={appSubtitle} 
-                          onChange={(e) => setAppSubtitle(e.target.value)}
-                          className="bg-gray-50 border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <Label className="text-xs">Nhãn số may mắn</Label>
-                          <Input 
-                            value={luckyNumberLabel} 
-                            onChange={(e) => setLuckyNumberLabel(e.target.value)}
-                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label className="text-xs">Nhãn người thắng</Label>
-                          <Input 
-                            value={winnerLabel} 
-                            onChange={(e) => setWinnerLabel(e.target.value)}
-                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <Label className="text-xs">Text nút quay</Label>
-                          <Input 
-                            value={drawButtonText} 
-                            onChange={(e) => setDrawButtonText(e.target.value)}
-                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label className="text-xs">Text đang quay</Label>
-                          <Input 
-                            value={drawingText} 
-                            onChange={(e) => setDrawingText(e.target.value)}
-                            className="bg-gray-50 border-gray-200 rounded-lg text-sm h-8"
-                          />
-                        </div>
+                        <Button asChild size="sm" className="bg-violet-500 hover:bg-violet-600 text-white border-0">
+                          <label htmlFor="users-file" className="cursor-pointer">
+                            <Upload size={14} className="mr-1" />
+                            Chọn file Excel
+                          </label>
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Text Customization - Full Width */}
+              <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileText size={20} />
+                    Tùy chỉnh text
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <Label className="text-sm">Tiêu đề ứng dụng</Label>
+                      <Input 
+                        value={appTitle} 
+                        onChange={(e) => setAppTitle(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm">Mô tả</Label>
+                      <Input 
+                        value={appSubtitle} 
+                        onChange={(e) => setAppSubtitle(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm">Nhãn số may mắn</Label>
+                      <Input 
+                        value={luckyNumberLabel} 
+                        onChange={(e) => setLuckyNumberLabel(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm">Nhãn người thắng</Label>
+                      <Input 
+                        value={winnerLabel} 
+                        onChange={(e) => setWinnerLabel(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm">Text nút quay</Label>
+                      <Input 
+                        value={drawButtonText} 
+                        onChange={(e) => setDrawButtonText(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm">Text đang quay</Label>
+                      <Input 
+                        value={drawingText} 
+                        onChange={(e) => setDrawingText(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </CollapsibleContent>
           </Collapsible>
         </div>
