@@ -116,15 +116,15 @@ const Index = () => {
 
   const startEditPrize = (prize: Prize) => {
     setEditingPrize(prize);
-    // Extract name and quantity from the formatted name
+    // Extract name from the formatted name but clear quantity for fresh input
     const match = prize.name.match(/^(.+)\s+\((\d+)\)$/);
     if (match) {
       setNewPrizeName(match[1]);
-      setNewPrizeQuantity(parseInt(match[2]));
     } else {
       setNewPrizeName(prize.name);
-      setNewPrizeQuantity(prize.quantity);
     }
+    // Clear quantity field for fresh input
+    setNewPrizeQuantity(1);
   };
 
   const saveEditPrize = () => {
@@ -673,3 +673,5 @@ const Index = () => {
 };
 
 export default Index;
+
+}
