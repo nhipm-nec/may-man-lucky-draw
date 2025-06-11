@@ -492,16 +492,25 @@ const Index = () => {
                         <Label className="text-sm">Số lượt quay</Label>
                         <Input
                           type="number"
-                          min="1"
+                          min="0"
                           value={newPrizeQuantity}
-                          onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 1)}
+                          onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
                           className="bg-white border-violet-200"
                         />
                       </div>
                       <div className="flex gap-2">
                         {editingPrize ? (
                           <>
-                            <Button onClick={saveEditPrize} size="sm" className="bg-green-500 hover:bg-green-600 text-white border-0">
+                            <Button 
+                              onClick={saveEditPrize} 
+                              size="sm" 
+                              disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                              className={`${
+                                !newPrizeName.trim() || newPrizeQuantity < 1
+                                  ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                  : 'bg-green-500 hover:bg-green-600'
+                              } text-white border-0`}
+                            >
                               Lưu
                             </Button>
                             <Button onClick={cancelEditPrize} size="sm" variant="outline">
@@ -509,7 +518,16 @@ const Index = () => {
                             </Button>
                           </>
                         ) : (
-                          <Button onClick={addPrize} size="sm" className="bg-violet-500 hover:bg-violet-600 text-white border-0">
+                          <Button 
+                            onClick={addPrize} 
+                            size="sm" 
+                            disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                            className={`${
+                              !newPrizeName.trim() || newPrizeQuantity < 1
+                                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                : 'bg-violet-500 hover:bg-violet-600'
+                            } text-white border-0`}
+                          >
                             <Plus size={16} className="mr-1" />
                             Thêm giải
                           </Button>
@@ -655,3 +673,5 @@ const Index = () => {
 };
 
 export default Index;
+
+</edits_to_apply>
