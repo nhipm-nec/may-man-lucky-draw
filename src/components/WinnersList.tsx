@@ -68,51 +68,6 @@ const WinnersList = ({ currentPrize, allPrizes, winnerColor, cardBgColor }: Winn
           )}
         </CardContent>
       </Card>
-
-      {/* All Prizes Summary */}
-      <Card className="backdrop-blur-sm shadow-xl border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Tổng kết giải thưởng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {allPrizes.map(prize => (
-              <div
-                key={prize.id}
-                className={`p-3 rounded-lg border transition-all duration-200 ${
-                  prize.id === currentPrize.id
-                    ? 'bg-gradient-to-r from-violet-100 to-pink-100 border-violet-300 shadow-sm'
-                    : 'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    {getIcon(prize.name)}
-                    <span className="font-medium text-sm">{prize.name}</span>
-                  </div>
-                  <Badge 
-                    variant={prize.winners.length === prize.quantity ? "default" : "outline"}
-                    className={prize.winners.length === prize.quantity ? "bg-green-500 border-0" : "border-gray-300"}
-                  >
-                    {prize.winners.length}/{prize.quantity}
-                  </Badge>
-                </div>
-                
-                {prize.winners.length > 0 && (
-                  <div className="space-y-1">
-                    {prize.winners.map((winner, index) => (
-                      <div key={index} className="text-xs text-gray-600 flex items-center gap-1">
-                        <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                        {winner}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
