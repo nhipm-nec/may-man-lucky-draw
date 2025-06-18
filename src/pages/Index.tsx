@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown, FileSpreadsheet, Plus, Trash2, Edit } from 'lucide-react';
+import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown, FileSpreadsheet, Plus, Trash2, Edit, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import WinnersList from '@/components/WinnersList';
@@ -60,6 +60,7 @@ const Index = () => {
   
   // Customization states
   const [backgroundColor, setBackgroundColor] = useState('#fef7ff'); // light purple
+  const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [fontFamily, setFontFamily] = useState('Inter');
   const [prizeColor, setPrizeColor] = useState('#8b5cf6'); // violet-500
   const [winnerColor, setWinnerColor] = useState('#ec4899'); // pink-500
@@ -69,7 +70,9 @@ const Index = () => {
   
   // Text customization
   const [appTitle, setAppTitle] = useState('Lucky Draw – NAC Studio');
+  const [appTitleColor, setAppTitleColor] = useState('#8b5cf6'); // violet-500
   const [appSubtitle, setAppSubtitle] = useState('Chương trình quay số may mắn');
+  const [appSubtitleColor, setAppSubtitleColor] = useState('#6b7280'); // gray-500
   const [luckyNumberLabel, setLuckyNumberLabel] = useState('Số may mắn');
   const [winnerLabel, setWinnerLabel] = useState('Người chiến thắng');
   const [drawButtonText, setDrawButtonText] = useState('Quay số');
@@ -238,7 +241,6 @@ const Index = () => {
   };
 
   const downloadTemplate = () => {
-    // Create template data
     const templateData = [
       { Number: 1, Name: 'Nguyễn Văn A', Note: 'Phòng IT' },
       { Number: 2, Name: 'Trần Thị B', Note: 'Phòng HR' },
@@ -247,14 +249,9 @@ const Index = () => {
       { Number: 5, Name: 'Hoàng Văn E', Note: 'Phòng Finance' }
     ];
 
-    // Create workbook and worksheet
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(templateData);
-
-    // Add worksheet to workbook
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
-
-    // Save file
     XLSX.writeFile(workbook, 'template-nguoi-dung.xlsx');
     
     toast.success('Đã tải xuống template thành công!');
@@ -270,11 +267,8 @@ const Index = () => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         
-        // Get the first worksheet
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        
-        // Convert to JSON
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
         if (jsonData.length === 0) {
@@ -282,19 +276,16 @@ const Index = () => {
           return;
         }
         
-        // Check if the file has the required columns (support both old and new format)
         const firstRow = jsonData[0] as any;
         let newUsers;
         
         if ('Number' in firstRow && 'Name' in firstRow && 'Note' in firstRow) {
-          // New format with Number, Name, Note
           newUsers = jsonData.map((row: any) => ({
             id: row['Number']?.toString() || `user-${Date.now()}-${Math.random()}`,
             name: row['Name'] || 'Không có tên',
             info: row['Note'] || ''
           }));
         } else if ('ID' in firstRow && 'Name' in firstRow && 'Info' in firstRow) {
-          // Old format with ID, Name, Info
           newUsers = jsonData.map((row: any, index) => ({
             id: row['ID']?.toString() || `user-${Date.now()}-${index}`,
             name: row['Name'] || 'Không có tên',
@@ -315,22 +306,44 @@ const Index = () => {
     reader.readAsArrayBuffer(file);
   };
 
+  const handleBackgroundImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      setBackgroundImage(imageUrl);
+      toast.success('Đã tải lên ảnh nền thành công!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const backgroundStyle = backgroundImage 
+    ? { 
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }
+    : { backgroundColor };
+
   return (
     <div 
       className="min-h-screen p-6 transition-all duration-500"
-      style={{ backgroundColor, fontFamily }}
+      style={{ ...backgroundStyle, fontFamily }}
     >
       {showConfetti && <ConfettiEffect />}
       
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold mb-2 flex items-center justify-center gap-3" style={{ color: prizeColor }}>
+          <h1 className="text-5xl font-bold mb-2 flex items-center justify-center gap-3" style={{ color: appTitleColor }}>
             <Sparkles size={48} />
             {appTitle}
             <Sparkles size={48} />
           </h1>
-          <p className="text-xl text-gray-600">{appSubtitle}</p>
+          <p className="text-xl" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -445,49 +458,53 @@ const Index = () => {
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-6 mt-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Quick Customization */}
+                {/* Combined Customization */}
                 <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Settings size={20} />
-                      Tùy chỉnh nhanh
+                      Tùy chỉnh giao diện
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm">Màu nền</Label>
-                      <input
-                        type="color"
-                        value={backgroundColor}
-                        onChange={(e) => setBackgroundColor(e.target.value)}
-                        className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                      />
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm">Tiêu đề ứng dụng</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={appTitle} 
+                          onChange={(e) => setAppTitle(e.target.value)}
+                          className="bg-gray-50 border-gray-200 rounded-lg flex-1"
+                        />
+                        <input
+                          type="color"
+                          value={appTitleColor}
+                          onChange={(e) => setAppTitleColor(e.target.value)}
+                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label className="text-sm">Màu thẻ</Label>
-                      <input
-                        type="color"
-                        value={cardBgColor}
-                        onChange={(e) => setCardBgColor(e.target.value)}
-                        className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                      />
+                    <div>
+                      <Label className="text-sm">Mô tả</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={appSubtitle} 
+                          onChange={(e) => setAppSubtitle(e.target.value)}
+                          className="bg-gray-50 border-gray-200 rounded-lg flex-1"
+                        />
+                        <input
+                          type="color"
+                          value={appSubtitleColor}
+                          onChange={(e) => setAppSubtitleColor(e.target.value)}
+                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label className="text-sm">Màu giải</Label>
-                      <input
-                        type="color"
-                        value={prizeColor}
-                        onChange={(e) => setPrizeColor(e.target.value)}
-                        className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
+                    <div>
                       <Label className="text-sm">Font chữ</Label>
                       <Select value={fontFamily} onValueChange={setFontFamily}>
-                        <SelectTrigger className="h-10">
+                        <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -497,6 +514,36 @@ const Index = () => {
                           <SelectItem value="Nunito">Nunito</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm">Ảnh nền</Label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+                        <Image className="mx-auto mb-2 text-gray-400" size={24} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBackgroundImageUpload}
+                          className="hidden"
+                          id="background-image"
+                        />
+                        <Button asChild size="sm" variant="outline">
+                          <label htmlFor="background-image" className="cursor-pointer">
+                            <Upload size={14} className="mr-1" />
+                            Chọn ảnh
+                          </label>
+                        </Button>
+                        {backgroundImage && (
+                          <Button 
+                            onClick={() => setBackgroundImage('')}
+                            size="sm" 
+                            variant="outline" 
+                            className="ml-2"
+                          >
+                            Xóa ảnh
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -606,28 +653,18 @@ const Index = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       {/* Download Template */}
-                      <div className="border border-green-200 rounded-xl p-4 text-center bg-green-50/50">
-                        <Download className="mx-auto mb-2 text-green-500" size={24} />
-                        <p className="text-xs text-gray-600 mb-2">Tải xuống template Excel mẫu</p>
-                        <p className="text-xs text-gray-500 mb-3">Gồm các cột: Number, Name, Note</p>
-                        <Button 
-                          onClick={downloadTemplate}
-                          size="sm" 
-                          className="bg-green-500 hover:bg-green-600 text-white border-0"
-                        >
-                          <Download size={14} className="mr-1" />
-                          Tải template
-                        </Button>
-                      </div>
+                      <Button 
+                        onClick={downloadTemplate}
+                        className="h-20 flex flex-col items-center justify-center bg-green-500 hover:bg-green-600 text-white border-0 text-sm"
+                      >
+                        <Download size={20} className="mb-1" />
+                        Tải template
+                      </Button>
 
                       {/* Upload File */}
-                      <div className="border-2 border-dashed border-violet-300 rounded-xl p-4 text-center bg-violet-50/50">
-                        <FileSpreadsheet className="mx-auto mb-2 text-violet-400" size={24} />
-                        <p className="text-xs text-gray-600 mb-2">Tải lên file Excel (.xlsx) danh sách người dùng</p>
-                        <p className="text-xs text-gray-500 mb-2">Cần có các cột: Number, Name, Note</p>
-                        <p className="text-xs text-gray-400 mb-3">Hiện có {users.length} người dùng</p>
+                      <div>
                         <input
                           type="file"
                           accept=".xlsx"
@@ -635,84 +672,18 @@ const Index = () => {
                           className="hidden"
                           id="users-file"
                         />
-                        <Button asChild size="sm" className="bg-violet-500 hover:bg-violet-600 text-white border-0">
+                        <Button asChild className="h-20 w-full flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 text-white border-0 text-sm">
                           <label htmlFor="users-file" className="cursor-pointer">
-                            <Upload size={14} className="mr-1" />
-                            Chọn file Excel
+                            <Upload size={20} className="mb-1" />
+                            Upload Excel
                           </label>
                         </Button>
                       </div>
                     </div>
+                    <p className="text-xs text-gray-400 mt-2 text-center">Hiện có {users.length} người dùng</p>
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Text Customization - Full Width */}
-              <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileText size={20} />
-                    Tùy chỉnh text
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <Label className="text-sm">Tiêu đề ứng dụng</Label>
-                      <Input 
-                        value={appTitle} 
-                        onChange={(e) => setAppTitle(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Mô tả</Label>
-                      <Input 
-                        value={appSubtitle} 
-                        onChange={(e) => setAppSubtitle(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Nhãn số may mắn</Label>
-                      <Input 
-                        value={luckyNumberLabel} 
-                        onChange={(e) => setLuckyNumberLabel(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Nhãn người thắng</Label>
-                      <Input 
-                        value={winnerLabel} 
-                        onChange={(e) => setWinnerLabel(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Text nút quay</Label>
-                      <Input 
-                        value={drawButtonText} 
-                        onChange={(e) => setDrawButtonText(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Text đang quay</Label>
-                      <Input 
-                        value={drawingText} 
-                        onChange={(e) => setDrawingText(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </CollapsibleContent>
           </Collapsible>
         </div>
