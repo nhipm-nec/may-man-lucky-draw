@@ -1,12 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Gift, Users, Download, Upload, Play, Sparkles, FileText, Settings, ChevronDown, FileSpreadsheet, Plus, Trash2, Edit, Image } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Gift, Users, Download, Upload, Play, Sparkles, Settings, Plus, Trash2, Edit, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import WinnersList from '@/components/WinnersList';
@@ -59,27 +59,89 @@ const Index = () => {
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
   
   // Customization states
-  const [backgroundColor, setBackgroundColor] = useState('#fef7ff'); // light purple
+  const [backgroundColor, setBackgroundColor] = useState('#fef7ff');
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [fontFamily, setFontFamily] = useState('Inter');
-  const [prizeColor, setPrizeColor] = useState('#8b5cf6'); // violet-500
-  const [winnerColor, setWinnerColor] = useState('#ec4899'); // pink-500
-  const [luckyNumberBgColor, setLuckyNumberBgColor] = useState('#f3e8ff'); // violet-100
-  const [winnerBgColor, setWinnerBgColor] = useState('#fdf2f8'); // pink-100
+  const [prizeColor, setPrizeColor] = useState('#8b5cf6');
+  const [winnerColor, setWinnerColor] = useState('#ec4899');
+  const [luckyNumberBgColor, setLuckyNumberBgColor] = useState('#f3e8ff');
+  const [winnerBgColor, setWinnerBgColor] = useState('#fdf2f8');
   const [cardBgColor, setCardBgColor] = useState('#ffffff');
   
   // Text customization
   const [appTitle, setAppTitle] = useState('Lucky Draw – NAC Studio');
-  const [appTitleColor, setAppTitleColor] = useState('#8b5cf6'); // violet-500
+  const [appTitleColor, setAppTitleColor] = useState('#8b5cf6');
   const [appSubtitle, setAppSubtitle] = useState('Chương trình quay số may mắn');
-  const [appSubtitleColor, setAppSubtitleColor] = useState('#6b7280'); // gray-500
+  const [appSubtitleColor, setAppSubtitleColor] = useState('#6b7280');
   const [luckyNumberLabel, setLuckyNumberLabel] = useState('Số may mắn');
   const [winnerLabel, setWinnerLabel] = useState('Người chiến thắng');
   const [drawButtonText, setDrawButtonText] = useState('Quay số');
   const [drawingText, setDrawingText] = useState('Đang quay...');
 
-  // Settings collapsible state
+  // New state for speed control
+  const [spinSpeed, setSpinSpeed] = useState(100); // milliseconds between number changes
+
+  // Settings dialog state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Drawing interval reference
+  const [drawingInterval, setDrawingInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Keyboard event handler
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (isDrawing && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        stopDrawing();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [isDrawing]);
+
+  const stopDrawing = () => {
+    if (drawingInterval) {
+      clearInterval(drawingInterval);
+      setDrawingInterval(null);
+    }
+
+    const availableUsers = users.filter(user => 
+      !prizes.some(prize => prize.winners.includes(user.name))
+    );
+    
+    // Select random winner
+    const randomIndex = Math.floor(Math.random() * availableUsers.length);
+    const winner = availableUsers[randomIndex];
+    
+    setLuckyNumber((randomIndex + 1).toString().padStart(3, '0'));
+    setWinnerName(winner.name);
+    setIsDrawing(false);
+    
+    // Update prize winners
+    const updatedPrizes = prizes.map(prize => 
+      prize.id === currentPrize.id 
+        ? { ...prize, winners: [...prize.winners, winner.name] }
+        : prize
+    );
+    setPrizes(updatedPrizes);
+    
+    const updatedCurrentPrize = updatedPrizes.find(p => p.id === currentPrize.id);
+    if (updatedCurrentPrize) {
+      setCurrentPrize(updatedCurrentPrize);
+    }
+    
+    // Show confetti if prize is complete
+    if (updatedCurrentPrize && updatedCurrentPrize.winners.length >= updatedCurrentPrize.quantity) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+      toast.success(`🎉 Hoàn thành ${currentPrize.name}!`);
+    } else {
+      toast.success(`🎊 Chúc mừng ${winner.name}!`);
+    }
+  };
 
   // Prize management functions
   const addPrize = () => {
@@ -119,14 +181,12 @@ const Index = () => {
 
   const startEditPrize = (prize: Prize) => {
     setEditingPrize(prize);
-    // Extract name from the formatted name but clear quantity for fresh input
     const match = prize.name.match(/^(.+)\s+\((\d+)\)$/);
     if (match) {
       setNewPrizeName(match[1]);
     } else {
       setNewPrizeName(prize.name);
     }
-    // Clear quantity field for fresh input
     setNewPrizeQuantity(1);
   };
 
@@ -182,45 +242,11 @@ const Index = () => {
     setWinnerName('');
     
     // Animated number spinning
-    let counter = 0;
     const interval = setInterval(() => {
       setLuckyNumber(Math.floor(Math.random() * 1000).toString().padStart(3, '0'));
-      counter++;
-      
-      if (counter > 30) {
-        clearInterval(interval);
-        
-        // Select random winner
-        const randomIndex = Math.floor(Math.random() * availableUsers.length);
-        const winner = availableUsers[randomIndex];
-        
-        setLuckyNumber((randomIndex + 1).toString().padStart(3, '0'));
-        setWinnerName(winner.name);
-        setIsDrawing(false);
-        
-        // Update prize winners
-        const updatedPrizes = prizes.map(prize => 
-          prize.id === currentPrize.id 
-            ? { ...prize, winners: [...prize.winners, winner.name] }
-            : prize
-        );
-        setPrizes(updatedPrizes);
-        
-        const updatedCurrentPrize = updatedPrizes.find(p => p.id === currentPrize.id);
-        if (updatedCurrentPrize) {
-          setCurrentPrize(updatedCurrentPrize);
-        }
-        
-        // Show confetti if prize is complete
-        if (updatedCurrentPrize && updatedCurrentPrize.winners.length >= updatedCurrentPrize.quantity) {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-          toast.success(`🎉 Hoàn thành ${currentPrize.name}!`);
-        } else {
-          toast.success(`🎊 Chúc mừng ${winner.name}!`);
-        }
-      }
-    }, 100);
+    }, spinSpeed);
+    
+    setDrawingInterval(interval);
   };
   
   const exportResults = () => {
@@ -330,41 +356,302 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen p-6 transition-all duration-500"
+      className="h-screen overflow-hidden p-6 transition-all duration-500 relative"
       style={{ ...backgroundStyle, fontFamily }}
     >
       {showConfetti && <ConfettiEffect />}
       
-      <div className="max-w-7xl mx-auto">
+      {/* Settings Button - Top Right */}
+      <div className="absolute top-6 right-6 z-10">
+        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              size="sm" 
+              className="bg-white/80 hover:bg-white/90 text-gray-700 border border-gray-200 rounded-xl shadow-lg backdrop-blur-sm"
+            >
+              <Settings size={20} />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl flex items-center gap-2">
+                <Settings size={24} />
+                Cài đặt
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              {/* Tùy chỉnh giao diện */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Tùy chỉnh giao diện</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-sm">Tiêu đề ứng dụng</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={appTitle} 
+                        onChange={(e) => setAppTitle(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg flex-1"
+                      />
+                      <input
+                        type="color"
+                        value={appTitleColor}
+                        onChange={(e) => setAppTitleColor(e.target.value)}
+                        className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm">Mô tả</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={appSubtitle} 
+                        onChange={(e) => setAppSubtitle(e.target.value)}
+                        className="bg-gray-50 border-gray-200 rounded-lg flex-1"
+                      />
+                      <input
+                        type="color"
+                        value={appSubtitleColor}
+                        onChange={(e) => setAppSubtitleColor(e.target.value)}
+                        className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm">Font chữ</Label>
+                    <Select value={fontFamily} onValueChange={setFontFamily}>
+                      <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Inter">Inter</SelectItem>
+                        <SelectItem value="Roboto">Roboto</SelectItem>
+                        <SelectItem value="Poppins">Poppins</SelectItem>
+                        <SelectItem value="Nunito">Nunito</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm">Tốc độ quay số (ms)</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="50"
+                        max="500"
+                        step="10"
+                        value={spinSpeed}
+                        onChange={(e) => setSpinSpeed(parseInt(e.target.value) || 100)}
+                        className="bg-gray-50 border-gray-200 rounded-lg"
+                      />
+                      <span className="text-sm text-gray-500">
+                        {spinSpeed < 100 ? 'Nhanh' : spinSpeed > 200 ? 'Chậm' : 'Vừa'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm">Ảnh nền</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+                      <Image className="mx-auto mb-2 text-gray-400" size={24} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBackgroundImageUpload}
+                        className="hidden"
+                        id="background-image"
+                      />
+                      <Button asChild size="sm" variant="outline">
+                        <label htmlFor="background-image" className="cursor-pointer">
+                          <Upload size={14} className="mr-1" />
+                          Chọn ảnh
+                        </label>
+                      </Button>
+                      {backgroundImage && (
+                        <Button 
+                          onClick={() => setBackgroundImage('')}
+                          size="sm" 
+                          variant="outline" 
+                          className="ml-2"
+                        >
+                          Xóa ảnh
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quản lý giải thưởng */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Gift size={20} />
+                    Quản lý giải thưởng
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200">
+                    <div>
+                      <Label className="text-sm">Tên giải thưởng</Label>
+                      <Input
+                        value={newPrizeName}
+                        onChange={(e) => setNewPrizeName(e.target.value)}
+                        placeholder="Nhập tên giải thưởng"
+                        className="bg-white border-violet-200"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Số lượt quay</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={newPrizeQuantity}
+                        onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
+                        className="bg-white border-violet-200"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      {editingPrize ? (
+                        <>
+                          <Button 
+                            onClick={saveEditPrize} 
+                            size="sm" 
+                            disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                            className={`${
+                              !newPrizeName.trim() || newPrizeQuantity < 1
+                                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                : 'bg-green-500 hover:bg-green-600'
+                            } text-white border-0`}
+                          >
+                            Lưu
+                          </Button>
+                          <Button onClick={cancelEditPrize} size="sm" variant="outline">
+                            Hủy
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          onClick={addPrize} 
+                          size="sm" 
+                          disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                          className={`${
+                            !newPrizeName.trim() || newPrizeQuantity < 1
+                              ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                              : 'bg-violet-500 hover:bg-violet-600'
+                          } text-white border-0`}
+                        >
+                          <Plus size={16} className="mr-1" />
+                          Thêm giải
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {prizes.map(prize => (
+                      <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">{prize.name}</span>
+                        <div className="flex gap-1">
+                          <Button
+                            onClick={() => startEditPrize(prize)}
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit size={12} />
+                          </Button>
+                          <Button
+                            onClick={() => deletePrize(prize.id)}
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 size={12} />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Upload người dùng */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Upload size={20} />
+                    Upload người dùng
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button 
+                      onClick={downloadTemplate}
+                      className="h-20 flex flex-col items-center justify-center bg-green-500 hover:bg-green-600 text-white border-0 text-sm"
+                    >
+                      <Download size={20} className="mb-1" />
+                      Tải template
+                    </Button>
+
+                    <div>
+                      <input
+                        type="file"
+                        accept=".xlsx"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="users-file"
+                      />
+                      <Button asChild className="h-20 w-full flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 text-white border-0 text-sm">
+                        <label htmlFor="users-file" className="cursor-pointer">
+                          <Upload size={20} className="mb-1" />
+                          Upload Excel
+                        </label>
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2 text-center">Hiện có {users.length} người dùng</p>
+                </CardContent>
+              </Card>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="h-full flex flex-col">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold mb-2 flex items-center justify-center gap-3" style={{ color: appTitleColor }}>
-            <Sparkles size={48} />
+        <div className="text-center mb-6">
+          <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3" style={{ color: appTitleColor }}>
+            <Sparkles size={36} />
             {appTitle}
-            <Sparkles size={48} />
+            <Sparkles size={36} />
           </h1>
-          <p className="text-xl" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
+          <p className="text-lg" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
           {/* Main Drawing Area */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 flex flex-col space-y-4">
             {/* Current Prize */}
-            <Card className="backdrop-blur-sm shadow-2xl border-0 rounded-2xl overflow-hidden" style={{ backgroundColor: cardBgColor }}>
-              <CardHeader className="text-center pb-4 bg-gradient-to-r from-violet-50 to-pink-50">
+            <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor + 'CC' }}>
+              <CardHeader className="text-center pb-3">
                 <CardTitle 
-                  className="text-3xl font-bold flex items-center justify-center gap-2"
+                  className="text-2xl font-bold flex items-center justify-center gap-2"
                   style={{ color: prizeColor }}
                 >
-                  <Gift size={32} />
+                  <Gift size={24} />
                   {currentPrize.name}
                 </CardTitle>
-                <div className="flex justify-center gap-4 mt-4">
+                <div className="flex justify-center mt-2">
                   <Select value={currentPrize.id} onValueChange={(value) => {
                     const prize = prizes.find(p => p.id === value);
                     if (prize) setCurrentPrize(prize);
                   }}>
-                    <SelectTrigger className="w-64 bg-white/80 border-violet-200 rounded-xl shadow-sm">
+                    <SelectTrigger className="w-64 bg-white/80 border-violet-200 rounded-lg shadow-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -378,26 +665,26 @@ const Index = () => {
                 </div>
               </CardHeader>
               
-              <CardContent className="text-center space-y-6 p-8">
+              <CardContent className="text-center space-y-4 p-4">
                 {/* Lucky Number Display */}
                 <div 
-                  className="rounded-3xl p-8 shadow-inner border-2 border-violet-200"
-                  style={{ backgroundColor: luckyNumberBgColor }}
+                  className="rounded-2xl p-4 shadow-inner border border-violet-200"
+                  style={{ backgroundColor: luckyNumberBgColor + 'AA' }}
                 >
-                  <p className="text-2xl font-semibold text-gray-600 mb-4">{luckyNumberLabel}</p>
-                  <div className="text-8xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent font-mono tracking-wider drop-shadow-lg">
+                  <p className="text-lg font-semibold text-gray-600 mb-2">{luckyNumberLabel}</p>
+                  <div className="text-5xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent font-mono tracking-wider">
                     {luckyNumber}
                   </div>
                 </div>
                 
                 {/* Winner Name */}
                 <div 
-                  className="rounded-2xl p-6 border-2 border-pink-200"
-                  style={{ backgroundColor: winnerBgColor }}
+                  className="rounded-xl p-3 border border-pink-200"
+                  style={{ backgroundColor: winnerBgColor + 'AA' }}
                 >
-                  <p className="text-xl font-semibold text-gray-600 mb-2">{winnerLabel}</p>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">{winnerLabel}</p>
                   <div 
-                    className="text-4xl font-bold min-h-[50px] flex items-center justify-center drop-shadow-md"
+                    className="text-2xl font-bold min-h-[30px] flex items-center justify-center"
                     style={{ color: winnerColor }}
                   >
                     {winnerName || '---'}
@@ -408,10 +695,10 @@ const Index = () => {
                 <Button
                   onClick={startDrawing}
                   disabled={isDrawing || currentPrize.winners.length >= currentPrize.quantity}
-                  className="w-full h-16 text-2xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 disabled:opacity-50 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 border-0"
+                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 disabled:opacity-50 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 border-0"
                 >
-                  <Play className="mr-2" size={24} />
-                  {isDrawing ? drawingText : drawButtonText}
+                  <Play className="mr-2" size={20} />
+                  {isDrawing ? `${drawingText} (Enter/Space để dừng)` : drawButtonText}
                 </Button>
               </CardContent>
             </Card>
@@ -420,272 +707,23 @@ const Index = () => {
             <div className="flex justify-center">
               <Button
                 onClick={exportResults}
-                className="h-14 text-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl shadow-lg border-0 px-8"
+                className="h-12 text-base bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-lg shadow-lg border-0 px-6"
               >
-                <Download className="mr-2" size={20} />
+                <Download className="mr-2" size={18} />
                 Xuất kết quả
               </Button>
             </div>
           </div>
           
           {/* Right Sidebar */}
-          <div className="space-y-6">
-            {/* Winners List */}
+          <div className="min-h-0">
             <WinnersList 
               currentPrize={currentPrize} 
               allPrizes={prizes}
               winnerColor={winnerColor}
-              cardBgColor={cardBgColor}
+              cardBgColor={cardBgColor + 'CC'}
             />
           </div>
-        </div>
-
-        {/* Settings Section - Collapsible */}
-        <div className="mt-16">
-          <Collapsible open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border-2 border-gray-200 rounded-xl shadow-lg transition-all duration-300"
-              >
-                <Settings className="mr-3" size={24} />
-                Cài đặt
-                <ChevronDown 
-                  className={`ml-3 transition-transform duration-300 ${isSettingsOpen ? 'rotate-180' : ''}`} 
-                  size={24} 
-                />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Combined Customization */}
-                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Settings size={20} />
-                      Tùy chỉnh giao diện
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-sm">Tiêu đề ứng dụng</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={appTitle} 
-                          onChange={(e) => setAppTitle(e.target.value)}
-                          className="bg-gray-50 border-gray-200 rounded-lg flex-1"
-                        />
-                        <input
-                          type="color"
-                          value={appTitleColor}
-                          onChange={(e) => setAppTitleColor(e.target.value)}
-                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Mô tả</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={appSubtitle} 
-                          onChange={(e) => setAppSubtitle(e.target.value)}
-                          className="bg-gray-50 border-gray-200 rounded-lg flex-1"
-                        />
-                        <input
-                          type="color"
-                          value={appSubtitleColor}
-                          onChange={(e) => setAppSubtitleColor(e.target.value)}
-                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Font chữ</Label>
-                      <Select value={fontFamily} onValueChange={setFontFamily}>
-                        <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Inter">Inter</SelectItem>
-                          <SelectItem value="Roboto">Roboto</SelectItem>
-                          <SelectItem value="Poppins">Poppins</SelectItem>
-                          <SelectItem value="Nunito">Nunito</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-sm">Ảnh nền</Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
-                        <Image className="mx-auto mb-2 text-gray-400" size={24} />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleBackgroundImageUpload}
-                          className="hidden"
-                          id="background-image"
-                        />
-                        <Button asChild size="sm" variant="outline">
-                          <label htmlFor="background-image" className="cursor-pointer">
-                            <Upload size={14} className="mr-1" />
-                            Chọn ảnh
-                          </label>
-                        </Button>
-                        {backgroundImage && (
-                          <Button 
-                            onClick={() => setBackgroundImage('')}
-                            size="sm" 
-                            variant="outline" 
-                            className="ml-2"
-                          >
-                            Xóa ảnh
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Prize Management */}
-                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Gift size={20} />
-                      Quản lý giải thưởng
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Add/Edit Prize Form */}
-                    <div className="space-y-3 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200">
-                      <div>
-                        <Label className="text-sm">Tên giải thưởng</Label>
-                        <Input
-                          value={newPrizeName}
-                          onChange={(e) => setNewPrizeName(e.target.value)}
-                          placeholder="Nhập tên giải thưởng"
-                          className="bg-white border-violet-200"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-sm">Số lượt quay</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          value={newPrizeQuantity}
-                          onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
-                          className="bg-white border-violet-200"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        {editingPrize ? (
-                          <>
-                            <Button 
-                              onClick={saveEditPrize} 
-                              size="sm" 
-                              disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
-                              className={`${
-                                !newPrizeName.trim() || newPrizeQuantity < 1
-                                  ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
-                                  : 'bg-green-500 hover:bg-green-600'
-                              } text-white border-0`}
-                            >
-                              Lưu
-                            </Button>
-                            <Button onClick={cancelEditPrize} size="sm" variant="outline">
-                              Hủy
-                            </Button>
-                          </>
-                        ) : (
-                          <Button 
-                            onClick={addPrize} 
-                            size="sm" 
-                            disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
-                            className={`${
-                              !newPrizeName.trim() || newPrizeQuantity < 1
-                                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
-                                : 'bg-violet-500 hover:bg-violet-600'
-                            } text-white border-0`}
-                          >
-                            <Plus size={16} className="mr-1" />
-                            Thêm giải
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Prizes List */}
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {prizes.map(prize => (
-                        <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <span className="text-sm font-medium">{prize.name}</span>
-                          <div className="flex gap-1">
-                            <Button
-                              onClick={() => startEditPrize(prize)}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit size={12} />
-                            </Button>
-                            <Button
-                              onClick={() => deletePrize(prize.id)}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 size={12} />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* User Upload */}
-                <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor }}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Upload size={20} />
-                      Upload người dùng
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Download Template */}
-                      <Button 
-                        onClick={downloadTemplate}
-                        className="h-20 flex flex-col items-center justify-center bg-green-500 hover:bg-green-600 text-white border-0 text-sm"
-                      >
-                        <Download size={20} className="mb-1" />
-                        Tải template
-                      </Button>
-
-                      {/* Upload File */}
-                      <div>
-                        <input
-                          type="file"
-                          accept=".xlsx"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                          id="users-file"
-                        />
-                        <Button asChild className="h-20 w-full flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 text-white border-0 text-sm">
-                          <label htmlFor="users-file" className="cursor-pointer">
-                            <Upload size={20} className="mb-1" />
-                            Upload Excel
-                          </label>
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-2 text-center">Hiện có {users.length} người dùng</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
         </div>
       </div>
     </div>
