@@ -236,6 +236,29 @@ const Index = () => {
     
     toast.success('Đã xuất kết quả thành công!');
   };
+
+  const downloadTemplate = () => {
+    // Create template data
+    const templateData = [
+      { Number: 1, Name: 'Nguyễn Văn A', Note: 'Phòng IT' },
+      { Number: 2, Name: 'Trần Thị B', Note: 'Phòng HR' },
+      { Number: 3, Name: 'Lê Văn C', Note: 'Phòng Sales' },
+      { Number: 4, Name: 'Phạm Thị D', Note: 'Phòng Marketing' },
+      { Number: 5, Name: 'Hoàng Văn E', Note: 'Phòng Finance' }
+    ];
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+    // Save file
+    XLSX.writeFile(workbook, 'template-nguoi-dung.xlsx');
+    
+    toast.success('Đã tải xuống template thành công!');
+  };
   
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -259,18 +282,28 @@ const Index = () => {
           return;
         }
         
-        // Check if the file has the required columns
+        // Check if the file has the required columns (support both old and new format)
         const firstRow = jsonData[0] as any;
-        if (!('ID' in firstRow) || !('Name' in firstRow) || !('Info' in firstRow)) {
-          toast.error('File người dùng phải có các cột: ID, Name, Info!');
+        let newUsers;
+        
+        if ('Number' in firstRow && 'Name' in firstRow && 'Note' in firstRow) {
+          // New format with Number, Name, Note
+          newUsers = jsonData.map((row: any) => ({
+            id: row['Number']?.toString() || `user-${Date.now()}-${Math.random()}`,
+            name: row['Name'] || 'Không có tên',
+            info: row['Note'] || ''
+          }));
+        } else if ('ID' in firstRow && 'Name' in firstRow && 'Info' in firstRow) {
+          // Old format with ID, Name, Info
+          newUsers = jsonData.map((row: any, index) => ({
+            id: row['ID']?.toString() || `user-${Date.now()}-${index}`,
+            name: row['Name'] || 'Không có tên',
+            info: row['Info'] || ''
+          }));
+        } else {
+          toast.error('File người dùng phải có các cột: Number, Name, Note hoặc ID, Name, Info!');
           return;
         }
-        
-        const newUsers = jsonData.map((row: any, index) => ({
-          id: row['ID']?.toString() || `user-${Date.now()}-${index}`,
-          name: row['Name'] || 'Không có tên',
-          info: row['Info'] || ''
-        }));
         
         setUsers(newUsers);
         toast.success(`Đã tải lên ${newUsers.length} người dùng!`);
@@ -574,10 +607,26 @@ const Index = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
+                      {/* Download Template */}
+                      <div className="border border-green-200 rounded-xl p-4 text-center bg-green-50/50">
+                        <Download className="mx-auto mb-2 text-green-500" size={24} />
+                        <p className="text-xs text-gray-600 mb-2">Tải xuống template Excel mẫu</p>
+                        <p className="text-xs text-gray-500 mb-3">Gồm các cột: Number, Name, Note</p>
+                        <Button 
+                          onClick={downloadTemplate}
+                          size="sm" 
+                          className="bg-green-500 hover:bg-green-600 text-white border-0"
+                        >
+                          <Download size={14} className="mr-1" />
+                          Tải template
+                        </Button>
+                      </div>
+
+                      {/* Upload File */}
                       <div className="border-2 border-dashed border-violet-300 rounded-xl p-4 text-center bg-violet-50/50">
                         <FileSpreadsheet className="mx-auto mb-2 text-violet-400" size={24} />
                         <p className="text-xs text-gray-600 mb-2">Tải lên file Excel (.xlsx) danh sách người dùng</p>
-                        <p className="text-xs text-gray-500 mb-2">Cần có các cột: ID, Name, Info</p>
+                        <p className="text-xs text-gray-500 mb-2">Cần có các cột: Number, Name, Note</p>
                         <p className="text-xs text-gray-400 mb-3">Hiện có {users.length} người dùng</p>
                         <input
                           type="file"
