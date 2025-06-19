@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Gift, Users, Download, Upload, Play, Sparkles, Settings, Plus, Trash2, Edit, Image } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Gift, Users, Download, Upload, Play, Sparkles, Settings, Plus, Trash2, Edit, Image, Crown, Trophy, Medal, X as LucideX, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import WinnersList from '@/components/WinnersList';
@@ -28,24 +28,15 @@ interface User {
 const Index = () => {
   const [currentPrize, setCurrentPrize] = useState<Prize>({
     id: '1',
-    name: 'Giải Nhì (2)',
-    quantity: 2,
+    name: 'Giải Nhất (1)',
+    quantity: 1,
     winners: []
   });
   
-  const [users, setUsers] = useState<User[]>([
-    { id: '1', name: 'Nguyễn Văn A', info: 'Phòng IT' },
-    { id: '2', name: 'Trần Thị B', info: 'Phòng HR' },
-    { id: '3', name: 'Lê Văn C', info: 'Phòng Sales' },
-    { id: '4', name: 'Phạm Thị D', info: 'Phòng Marketing' },
-    { id: '5', name: 'Hoàng Văn E', info: 'Phòng Finance' }
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
   
   const [prizes, setPrizes] = useState<Prize[]>([
-    { id: '1', name: 'Giải Nhất (1)', quantity: 1, winners: [] },
-    { id: '2', name: 'Giải Nhì (2)', quantity: 2, winners: [] },
-    { id: '3', name: 'Giải Ba (3)', quantity: 3, winners: [] },
-    { id: '4', name: 'Giải Khuyến Khích (5)', quantity: 5, winners: [] }
+    { id: '1', name: 'Giải Nhất (1)', quantity: 1, winners: [] }
   ]);
   
   const [luckyNumber, setLuckyNumber] = useState<string>('000');
@@ -67,6 +58,7 @@ const Index = () => {
   const [luckyNumberBgColor, setLuckyNumberBgColor] = useState('#f3e8ff');
   const [winnerBgColor, setWinnerBgColor] = useState('#fdf2f8');
   const [cardBgColor, setCardBgColor] = useState('#ffffff');
+  const [luckyNumberColor, setLuckyNumberColor] = useState('#8b5cf6');
   
   // Text customization
   const [appTitle, setAppTitle] = useState('Lucky Draw – NAC Studio');
@@ -87,12 +79,27 @@ const Index = () => {
   // Drawing interval reference
   const [drawingInterval, setDrawingInterval] = useState<NodeJS.Timeout | null>(null);
 
+  // Track if first draw has been started
+  const [hasStartedFirstDraw, setHasStartedFirstDraw] = useState(false);
+
+  // Thêm state cho dialog xoá
+  const [deleteWinnerIndex, setDeleteWinnerIndex] = useState<number|null>(null);
+
+  // Function to get prize icon
+  const getPrizeIcon = (prizeName: string) => {
+    return <Gift className="text-blue-500" size={24} />;
+  };
+
   // Keyboard event handler
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (isDrawing && (event.key === 'Enter' || event.key === ' ')) {
+      if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        stopDrawing();
+        if (isDrawing) {
+          stopDrawing();
+        } else if (hasStartedFirstDraw && currentPrize.winners.length < currentPrize.quantity) {
+          startDrawing();
+        }
       }
     };
 
@@ -100,7 +107,7 @@ const Index = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [isDrawing]);
+  }, [isDrawing, hasStartedFirstDraw, currentPrize.winners.length, currentPrize.quantity]);
 
   const stopDrawing = () => {
     if (drawingInterval) {
@@ -133,14 +140,8 @@ const Index = () => {
       setCurrentPrize(updatedCurrentPrize);
     }
     
-    // Show confetti if prize is complete
-    if (updatedCurrentPrize && updatedCurrentPrize.winners.length >= updatedCurrentPrize.quantity) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-      toast.success(`🎉 Hoàn thành ${currentPrize.name}!`);
-    } else {
-      toast.success(`🎊 Chúc mừng ${winner.name}!`);
-    }
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 3000);
   };
 
   // Prize management functions
@@ -240,6 +241,7 @@ const Index = () => {
     
     setIsDrawing(true);
     setWinnerName('');
+    setHasStartedFirstDraw(true);
     
     // Animated number spinning
     const interval = setInterval(() => {
@@ -252,7 +254,13 @@ const Index = () => {
   const exportResults = () => {
     const results = prizes
       .filter(prize => prize.winners.length > 0)
-      .map(prize => `${prize.name}:\n${prize.winners.map((winner, index) => `${index + 1}. ${winner}`).join('\n')}`)
+      .map(prize => {
+        const winnersWithInfo = prize.winners.map(winner => {
+          const userInfo = users.find(user => user.name === winner);
+          return userInfo?.info ? `${winner} - ${userInfo.info}` : winner;
+        });
+        return `${prize.name}:\n${winnersWithInfo.map((winner, index) => `${index + 1}. ${winner}`).join('\n')}`;
+      })
       .join('\n\n');
     
     const blob = new Blob([results], { type: 'text/plain' });
@@ -282,7 +290,23 @@ const Index = () => {
     
     toast.success('Đã tải xuống template thành công!');
   };
-  
+
+  const downloadPrizeTemplate = () => {
+    const templateData = [
+      { Name: 'Giải Nhất', Quantity: 1 },
+      { Name: 'Giải Nhì', Quantity: 2 },
+      { Name: 'Giải Ba', Quantity: 3 },
+      { Name: 'Giải Khuyến Khích', Quantity: 5 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Prizes');
+    XLSX.writeFile(workbook, 'template-giai-thuong.xlsx');
+    
+    toast.success('Đã tải xuống template giải thưởng thành công!');
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -323,7 +347,65 @@ const Index = () => {
         }
         
         setUsers(newUsers);
+        // Reset winners of all prizes
+        setPrizes(prev => prev.map(prize => ({ ...prize, winners: [] })));
+        setCurrentPrize(prev => prev ? { ...prev, winners: [] } : prev);
+        setWinnerName('');
+        setLuckyNumber('000');
         toast.success(`Đã tải lên ${newUsers.length} người dùng!`);
+      } catch (error) {
+        console.error('Error parsing Excel file:', error);
+        toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handlePrizeFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        if (jsonData.length === 0) {
+          toast.error('File trống hoặc không đúng định dạng!');
+          return;
+        }
+        
+        const firstRow = jsonData[0] as any;
+        let newPrizes;
+        
+        if ('Name' in firstRow && 'Quantity' in firstRow) {
+          newPrizes = jsonData.map((row: any, index) => ({
+            id: (index + 1).toString(),
+            name: row['Name'] || `Giải ${index + 1}`,
+            quantity: parseInt(row['Quantity']) || 1,
+            winners: []
+          }));
+        } else if ('Tên' in firstRow && 'Số lượng' in firstRow) {
+          newPrizes = jsonData.map((row: any, index) => ({
+            id: (index + 1).toString(),
+            name: row['Tên'] || `Giải ${index + 1}`,
+            quantity: parseInt(row['Số lượng']) || 1,
+            winners: []
+          }));
+        } else {
+          toast.error('File giải thưởng phải có các cột: Name, Quantity hoặc Tên, Số lượng!');
+          return;
+        }
+        
+        setPrizes(newPrizes);
+        setCurrentPrize(newPrizes[0]);
+        setHasStartedFirstDraw(false);
+        toast.success(`Đã tải lên ${newPrizes.length} giải thưởng!`);
       } catch (error) {
         console.error('Error parsing Excel file:', error);
         toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!');
@@ -355,19 +437,22 @@ const Index = () => {
     : { backgroundColor };
 
   return (
-    <div 
-      className="h-screen overflow-hidden p-6 transition-all duration-500 relative"
-      style={{ ...backgroundStyle, fontFamily }}
-    >
+    <div className="min-h-screen flex flex-col items-center pt-8 pb-2 transition-all duration-500 relative" style={backgroundStyle}>
       {showConfetti && <ConfettiEffect />}
-      
       {/* Settings Button - Top Right */}
-      <div className="absolute top-6 right-6 z-10">
+      <div className="absolute top-6 right-6 z-10 flex gap-2">
+        <Button 
+          size="sm" 
+          onClick={exportResults}
+          className="bg-white/80 hover:bg-white/90 text-gray-700 rounded-xl shadow-lg backdrop-blur-sm"
+        >
+          <Download size={20} />
+        </Button>
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
           <DialogTrigger asChild>
             <Button 
               size="sm" 
-              className="bg-white/80 hover:bg-white/90 text-gray-700 border border-gray-200 rounded-xl shadow-lg backdrop-blur-sm"
+              className="bg-white/80 hover:bg-white/90 text-gray-700 rounded-xl shadow-lg backdrop-blur-sm"
             >
               <Settings size={20} />
             </Button>
@@ -380,225 +465,27 @@ const Index = () => {
               </DialogTitle>
             </DialogHeader>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              {/* Tùy chỉnh giao diện */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Tùy chỉnh giao diện</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-sm">Tiêu đề ứng dụng</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={appTitle} 
-                        onChange={(e) => setAppTitle(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg flex-1"
-                      />
-                      <input
-                        type="color"
-                        value={appTitleColor}
-                        onChange={(e) => setAppTitleColor(e.target.value)}
-                        className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm">Mô tả</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={appSubtitle} 
-                        onChange={(e) => setAppSubtitle(e.target.value)}
-                        className="bg-gray-50 border-gray-200 rounded-lg flex-1"
-                      />
-                      <input
-                        type="color"
-                        value={appSubtitleColor}
-                        onChange={(e) => setAppSubtitleColor(e.target.value)}
-                        className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm">Font chữ</Label>
-                    <Select value={fontFamily} onValueChange={setFontFamily}>
-                      <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Inter">Inter</SelectItem>
-                        <SelectItem value="Roboto">Roboto</SelectItem>
-                        <SelectItem value="Poppins">Poppins</SelectItem>
-                        <SelectItem value="Nunito">Nunito</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm">Tốc độ quay số (ms)</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="50"
-                        max="500"
-                        step="10"
-                        value={spinSpeed}
-                        onChange={(e) => setSpinSpeed(parseInt(e.target.value) || 100)}
-                        className="bg-gray-50 border-gray-200 rounded-lg"
-                      />
-                      <span className="text-sm text-gray-500">
-                        {spinSpeed < 100 ? 'Nhanh' : spinSpeed > 200 ? 'Chậm' : 'Vừa'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm">Ảnh nền</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
-                      <Image className="mx-auto mb-2 text-gray-400" size={24} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleBackgroundImageUpload}
-                        className="hidden"
-                        id="background-image"
-                      />
-                      <Button asChild size="sm" variant="outline">
-                        <label htmlFor="background-image" className="cursor-pointer">
-                          <Upload size={14} className="mr-1" />
-                          Chọn ảnh
-                        </label>
+            <div className="space-y-6 mt-4">
+              {/* Upload Section - Moved to top */}
+              <div className="grid grid-cols-1 gap-4">
+                {/* Upload người dùng */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Upload size={20} />
+                      Upload người chơi
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
+                      <Button 
+                        onClick={downloadTemplate}
+                        className="h-10 w-full md:w-40 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white border-0 text-xs font-medium px-3 gap-2"
+                      >
+                        <Download size={16} />
+                        <span>Tải template</span>
                       </Button>
-                      {backgroundImage && (
-                        <Button 
-                          onClick={() => setBackgroundImage('')}
-                          size="sm" 
-                          variant="outline" 
-                          className="ml-2"
-                        >
-                          Xóa ảnh
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Quản lý giải thưởng */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Gift size={20} />
-                    Quản lý giải thưởng
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200">
-                    <div>
-                      <Label className="text-sm">Tên giải thưởng</Label>
-                      <Input
-                        value={newPrizeName}
-                        onChange={(e) => setNewPrizeName(e.target.value)}
-                        placeholder="Nhập tên giải thưởng"
-                        className="bg-white border-violet-200"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm">Số lượt quay</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={newPrizeQuantity}
-                        onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
-                        className="bg-white border-violet-200"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      {editingPrize ? (
-                        <>
-                          <Button 
-                            onClick={saveEditPrize} 
-                            size="sm" 
-                            disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
-                            className={`${
-                              !newPrizeName.trim() || newPrizeQuantity < 1
-                                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
-                                : 'bg-green-500 hover:bg-green-600'
-                            } text-white border-0`}
-                          >
-                            Lưu
-                          </Button>
-                          <Button onClick={cancelEditPrize} size="sm" variant="outline">
-                            Hủy
-                          </Button>
-                        </>
-                      ) : (
-                        <Button 
-                          onClick={addPrize} 
-                          size="sm" 
-                          disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
-                          className={`${
-                            !newPrizeName.trim() || newPrizeQuantity < 1
-                              ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
-                              : 'bg-violet-500 hover:bg-violet-600'
-                          } text-white border-0`}
-                        >
-                          <Plus size={16} className="mr-1" />
-                          Thêm giải
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {prizes.map(prize => (
-                      <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium">{prize.name}</span>
-                        <div className="flex gap-1">
-                          <Button
-                            onClick={() => startEditPrize(prize)}
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                          >
-                            <Edit size={12} />
-                          </Button>
-                          <Button
-                            onClick={() => deletePrize(prize.id)}
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 size={12} />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Upload người dùng */}
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Upload size={20} />
-                    Upload người dùng
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Button 
-                      onClick={downloadTemplate}
-                      className="h-20 flex flex-col items-center justify-center bg-green-500 hover:bg-green-600 text-white border-0 text-sm"
-                    >
-                      <Download size={20} className="mb-1" />
-                      Tải template
-                    </Button>
-
-                    <div>
                       <input
                         type="file"
                         accept=".xlsx"
@@ -606,124 +493,385 @@ const Index = () => {
                         className="hidden"
                         id="users-file"
                       />
-                      <Button asChild className="h-20 w-full flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 text-white border-0 text-sm">
-                        <label htmlFor="users-file" className="cursor-pointer">
-                          <Upload size={20} className="mb-1" />
-                          Upload Excel
-                        </label>
+                      <Button
+                        type="button"
+                        onClick={() => document.getElementById('users-file')?.click()}
+                        className="h-10 w-full md:w-40 flex items-center justify-center bg-violet-500 hover:bg-violet-600 text-white border-0 text-xs font-medium px-3 gap-2"
+                      >
+                        <Upload size={16} />
+                        <span>Upload Excel</span>
                       </Button>
                     </div>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2 text-center">Hiện có {users.length} người dùng</p>
-                </CardContent>
-              </Card>
+                    <p className="text-xs text-gray-400 mt-2 text-center">Hiện có {users.length} người chơi</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Tùy chỉnh giao diện */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Tùy chỉnh giao diện</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-bold">Tiêu đề ứng dụng</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={appTitle} 
+                          onChange={(e) => setAppTitle(e.target.value)}
+                          className="bg-gray-50 border-gray-200 rounded-lg flex-1 font-bold"
+                        />
+                        <input
+                          type="color"
+                          value={appTitleColor}
+                          onChange={(e) => setAppTitleColor(e.target.value)}
+                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-bold">Mô tả</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={appSubtitle} 
+                          onChange={(e) => setAppSubtitle(e.target.value)}
+                          className="bg-gray-50 border-gray-200 rounded-lg flex-1 font-bold"
+                        />
+                        <input
+                          type="color"
+                          value={appSubtitleColor}
+                          onChange={(e) => setAppSubtitleColor(e.target.value)}
+                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div>
+                        <Label className="text-sm font-bold">Màu số may mắn</Label>
+                        <input
+                          type="color"
+                          value={luckyNumberColor}
+                          onChange={e => setLuckyNumberColor(e.target.value)}
+                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer ml-2"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-bold">Màu chữ chọn giải</Label>
+                        <input
+                          type="color"
+                          value={prizeColor}
+                          onChange={e => setPrizeColor(e.target.value)}
+                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer ml-2"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm">Font chữ</Label>
+                      <Select value={fontFamily} onValueChange={setFontFamily}>
+                        <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Inter">Inter</SelectItem>
+                          <SelectItem value="Roboto">Roboto</SelectItem>
+                          <SelectItem value="Poppins">Poppins</SelectItem>
+                          <SelectItem value="Nunito">Nunito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm">Tốc độ quay số (ms)</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="50"
+                          max="500"
+                          step="10"
+                          value={spinSpeed}
+                          onChange={(e) => setSpinSpeed(parseInt(e.target.value) || 100)}
+                          className="bg-gray-50 border-gray-200 rounded-lg"
+                        />
+                        <span className="text-sm text-gray-500">
+                          {spinSpeed < 100 ? 'Nhanh' : spinSpeed > 200 ? 'Chậm' : 'Vừa'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-bold">Ảnh nền</Label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+                        <Image className="mx-auto mb-2 text-gray-400" size={24} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBackgroundImageUpload}
+                          className="hidden"
+                          id="background-image"
+                        />
+                        <Button asChild size="sm" variant="outline" className="font-bold mt-2">
+                          <label htmlFor="background-image" className="cursor-pointer">
+                            <Upload size={14} className="mr-1" />
+                            Chọn ảnh
+                          </label>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quản lý giải thưởng */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Gift size={20} />
+                      Quản lý giải thưởng
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200">
+                      <div>
+                        <Label className="text-sm">Tên giải thưởng</Label>
+                        <Input
+                          value={newPrizeName}
+                          onChange={(e) => setNewPrizeName(e.target.value)}
+                          placeholder="Nhập tên giải thưởng"
+                          className="bg-white border-violet-200"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Số lượt quay</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={newPrizeQuantity}
+                          onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
+                          className="bg-white border-violet-200"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        {editingPrize ? (
+                          <>
+                            <Button 
+                              onClick={saveEditPrize} 
+                              size="sm" 
+                              disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                              className={`${
+                                !newPrizeName.trim() || newPrizeQuantity < 1
+                                  ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                  : 'bg-green-500 hover:bg-green-600'
+                              } text-white border-0`}
+                            >
+                              Lưu
+                            </Button>
+                            <Button onClick={cancelEditPrize} size="sm" variant="outline">
+                              Hủy
+                            </Button>
+                          </>
+                        ) : (
+                          <Button 
+                            onClick={addPrize} 
+                            size="sm" 
+                            disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                            className={`${
+                              !newPrizeName.trim() || newPrizeQuantity < 1
+                                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                : 'bg-violet-500 hover:bg-violet-600'
+                            } text-white border-0`}
+                          >
+                            <Plus size={16} className="mr-1" />
+                            Thêm giải
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {prizes.map(prize => (
+                        <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium">{prize.name}</span>
+                          <div className="flex gap-1">
+                            <Button
+                              onClick={() => startEditPrize(prize)}
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit size={12} />
+                            </Button>
+                            <Button
+                              onClick={() => deletePrize(prize.id)}
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 size={12} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="h-full flex flex-col">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3" style={{ color: appTitleColor }}>
+      {/* Main Centered Content - 1 column layout */}
+      <div className="w-full max-w-2xl flex flex-col items-center justify-center">
+        <div className="text-center mb-1">
+          <h1 className="text-4xl font-bold flex items-center justify-center gap-3" style={{ color: appTitleColor }}>
             <Sparkles size={36} />
             {appTitle}
             <Sparkles size={36} />
           </h1>
           <p className="text-lg" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
         </div>
-
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
-          {/* Main Drawing Area */}
-          <div className="lg:col-span-2 flex flex-col space-y-4">
-            {/* Current Prize */}
-            <Card className="backdrop-blur-sm shadow-lg border-0 rounded-xl" style={{ backgroundColor: cardBgColor + 'CC' }}>
-              <CardHeader className="text-center pb-3">
-                <CardTitle 
-                  className="text-2xl font-bold flex items-center justify-center gap-2"
-                  style={{ color: prizeColor }}
-                >
-                  <Gift size={24} />
+        {/* Prize Select */}
+        <div className="flex justify-center mb-0">
+          <Select value={currentPrize.id} onValueChange={(value) => {
+            const prize = prizes.find(p => p.id === value);
+            if (prize) {
+              setCurrentPrize(prize);
+              setHasStartedFirstDraw(false);
+              setWinnerName('');
+              setLuckyNumber('000');
+            }
+          }}>
+            <SelectTrigger className="w-80 bg-transparent border-0 shadow-none text-xl font-bold flex items-center justify-center gap-2 focus:ring-0 focus:border-0 outline-none" style={{ color: prizeColor, boxShadow: 'none', border: 'none' }}>
+              <SelectValue>
+                <div className="flex items-center gap-2">
+                  {getPrizeIcon(currentPrize.name)}
                   {currentPrize.name}
-                </CardTitle>
-                <div className="flex justify-center mt-2">
-                  <Select value={currentPrize.id} onValueChange={(value) => {
-                    const prize = prizes.find(p => p.id === value);
-                    if (prize) setCurrentPrize(prize);
-                  }}>
-                    <SelectTrigger className="w-64 bg-white/80 border-violet-200 rounded-lg shadow-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {prizes.map(prize => (
-                        <SelectItem key={prize.id} value={prize.id}>
-                          {prize.name} ({prize.winners.length}/{prize.quantity})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
-              </CardHeader>
-              
-              <CardContent className="text-center space-y-4 p-4">
-                {/* Lucky Number Display */}
-                <div 
-                  className="rounded-2xl p-4 shadow-inner border border-violet-200"
-                  style={{ backgroundColor: luckyNumberBgColor + 'AA' }}
-                >
-                  <p className="text-lg font-semibold text-gray-600 mb-2">{luckyNumberLabel}</p>
-                  <div className="text-5xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent font-mono tracking-wider">
-                    {luckyNumber}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {prizes.map(prize => (
+                <SelectItem key={prize.id} value={prize.id}>
+                  <div className="flex items-center gap-2">
+                    {getPrizeIcon(prize.name)}
+                    {prize.name} ({prize.winners.length}/{prize.quantity})
                   </div>
-                </div>
-                
-                {/* Winner Name */}
-                <div 
-                  className="rounded-xl p-3 border border-pink-200"
-                  style={{ backgroundColor: winnerBgColor + 'AA' }}
-                >
-                  <p className="text-sm font-semibold text-gray-600 mb-1">{winnerLabel}</p>
-                  <div 
-                    className="text-2xl font-bold min-h-[30px] flex items-center justify-center"
-                    style={{ color: winnerColor }}
-                  >
-                    {winnerName || '---'}
-                  </div>
-                </div>
-                
-                {/* Draw Button */}
-                <Button
-                  onClick={startDrawing}
-                  disabled={isDrawing || currentPrize.winners.length >= currentPrize.quantity}
-                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 disabled:opacity-50 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 border-0"
-                >
-                  <Play className="mr-2" size={20} />
-                  {isDrawing ? `${drawingText} (Enter/Space để dừng)` : drawButtonText}
-                </Button>
-              </CardContent>
-            </Card>
-            
-            {/* Export Button */}
-            <div className="flex justify-center">
-              <Button
-                onClick={exportResults}
-                className="h-12 text-base bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-lg shadow-lg border-0 px-6"
-              >
-                <Download className="mr-2" size={18} />
-                Xuất kết quả
-              </Button>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Card className="w-full bg-transparent shadow-none border-0">
+          <CardHeader className="text-center pb-1">
+            <div className="w-full max-w-xl mx-auto rounded-2xl min-h-56 flex flex-col justify-center mb-1" style={{ background: luckyNumberBgColor + 'AA' }}>
+              <div className="text-9xl font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
             </div>
+            <div className="w-full max-w-xl mx-auto rounded-2xl min-h-20 flex flex-col justify-center mb-4" style={{ background: winnerBgColor + 'AA' }}>
+              <div className="text-base font-semibold mb-1">{winnerLabel}</div>
+              <div className="text-2xl font-bold tracking-wide" style={{ color: winnerColor }}>
+                {winnerName
+                  ? (<>
+                      {winnerName}
+                      {users.find(user => user.name === winnerName)?.info && (
+                        <span className="text-gray-600 ml-1">- {users.find(user => user.name === winnerName)?.info}</span>
+                      )}
+                    </>)
+                  : '---'}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <Button
+              size="lg"
+              className="w-full max-w-xl h-8 text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg hover:from-purple-500 hover:to-pink-500"
+              onClick={isDrawing ? stopDrawing : startDrawing}
+              disabled={currentPrize.winners.length >= currentPrize.quantity}
+            >
+              <Play className="mr-2" size={16} />
+              {isDrawing ? drawingText : drawButtonText}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Winners List - full width, below card, not in grid */}
+        <div className="w-screen px-8 mt-4">
+          <div className="flex items-center gap-2 text-base mb-2">
+            <Gift size={16} />
+            Người thắng {currentPrize.name}
+            <Badge variant="outline" className="ml-auto border-violet-300 text-violet-600 text-xs">
+              {currentPrize.winners.length}/{currentPrize.quantity}
+            </Badge>
           </div>
-          
-          {/* Right Sidebar */}
-          <div className="min-h-0">
-            <WinnersList 
-              currentPrize={currentPrize} 
-              allPrizes={prizes}
-              winnerColor={winnerColor}
-              cardBgColor={cardBgColor + 'CC'}
-            />
-          </div>
+          {currentPrize.winners.length > 0 ? (
+            <div className="flex flex-wrap gap-2 max-h-[110px] overflow-y-auto" style={{ alignContent: 'flex-start' }}>
+              {currentPrize.winners.map((winner, index) => {
+                const userInfo = users.find(user => user.name === winner);
+                return (
+                  <div
+                    key={index}
+                    className="relative h-8 px-4 flex items-center justify-center bg-gradient-to-r from-violet-100 to-pink-100 rounded-md border border-violet-200 text-xs flex-shrink-0 text-center truncate"
+                  >
+                    <span className="font-bold" style={{ color: winnerColor }}>
+                      {winner}
+                    </span>
+                    {userInfo?.info && (
+                      <span className="text-gray-600 ml-1 font-semibold">
+                        - {userInfo.info}
+                      </span>
+                    )}
+                    {/* Nút X xoá */}
+                    <button
+                      className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-7 h-7 flex items-center justify-center shadow hover:bg-red-100 transition text-red-500"
+                      aria-label="Xoá"
+                      onClick={() => setDeleteWinnerIndex(index)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    {/* Dialog xác nhận xoá */}
+                    <Dialog open={deleteWinnerIndex === index} onOpenChange={open => !open && setDeleteWinnerIndex(null)}>
+                      <DialogContent className="max-w-xs text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <AlertTriangle className="text-red-500 mb-1" size={36} />
+                          <DialogTitle className="font-bold text-lg text-red-600 mb-1">Xác nhận xoá người chiến thắng?</DialogTitle>
+                          <div className="text-base font-semibold text-pink-600">{winner}</div>
+                          {userInfo?.info && <div className="text-sm text-gray-500 mb-2">{userInfo.info}</div>}
+                          <div className="flex gap-2 justify-center mt-2">
+                            <Button variant="outline" className="font-bold" onClick={() => setDeleteWinnerIndex(null)}>Huỷ</Button>
+                            <Button variant="destructive" className="font-bold" onClick={() => {
+                              // Xoá khỏi winners
+                              const updatedWinners = currentPrize.winners.filter((w, i) => i !== index);
+                              const updatedPrizes = prizes.map(prize =>
+                                prize.id === currentPrize.id
+                                  ? { ...prize, winners: updatedWinners }
+                                  : prize
+                              );
+                              setPrizes(updatedPrizes);
+                              setCurrentPrize({ ...currentPrize, winners: updatedWinners });
+                              if (winnerName === winner) setWinnerName('');
+                              setDeleteWinnerIndex(null);
+                            }}>Xoá</Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-2 text-gray-500 text-sm min-h-[60px] flex flex-col items-center justify-center">
+              <Gift size={16} className="mx-auto mb-1 opacity-50" />
+              <p>Chưa có người thắng</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
