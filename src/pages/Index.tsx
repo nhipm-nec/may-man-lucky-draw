@@ -813,39 +813,38 @@ const Index = () => {
         
         <div className="flex-1 overflow-y-auto p-4">
           {currentPrize.winners.length > 0 ? (
-            <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
               {currentPrize.winners.map((winner, index) => {
                 const userInfo = users.find(user => user.name === winner);
                 return (
                   <div
                     key={index}
-                    className="group relative p-3 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200 shadow-sm hover:shadow-md transition-all duration-200"
+                    className="group relative flex items-center bg-gradient-to-r from-violet-50 to-pink-50 rounded-full border border-violet-200 shadow-sm hover:shadow-md transition-all duration-200 px-4 py-1.5"
                   >
                     {/* Delete button - positioned outside the card */}
                     <button
                       onClick={() => setDeleteWinnerIndex(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 z-20"
-                      style={{ transform: 'translate(0, 0)' }}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 z-20"
                     >
-                      <LucideX size={12} />
+                      <LucideX size={10} />
                     </button>
                     
-                    <div className="flex items-center justify-between mb-1">
+                    <span className="flex items-center gap-1">
                       <span 
-                        className="font-semibold text-sm"
+                        className="font-medium text-sm"
                         style={{ color: winnerColor }}
                       >
                         {winner}
                       </span>
-                      <Badge className="bg-gradient-to-r from-violet-500 to-pink-500 text-white border-0 text-xs">
-                        #{index + 1}
-                      </Badge>
-                    </div>
-                    {userInfo?.info && (
-                      <div className="text-xs text-gray-600">
-                        {userInfo.info}
-                      </div>
-                    )}
+                      {userInfo?.info && (
+                        <>
+                          <span className="text-gray-400 mx-1">-</span>
+                          <span className="text-sm text-gray-600">
+                            {userInfo.info}
+                          </span>
+                        </>
+                      )}
+                    </span>
                     
                     {/* Dialog xác nhận xoá */}
                     <Dialog open={deleteWinnerIndex === index} onOpenChange={open => !open && setDeleteWinnerIndex(null)}>
