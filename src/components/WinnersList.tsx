@@ -53,34 +53,37 @@ const WinnersList = ({ currentPrize, allPrizes, users, winnerColor, cardBgColor,
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           {currentPrize.winners.length > 0 ? (
-            <div className="space-y-2 h-full overflow-y-auto pr-2">
+            <div className="space-y-3 h-full overflow-y-auto pr-2">
               {currentPrize.winners.map((winner, index) => {
                 const userInfo = getUserInfo(winner);
                 return (
                   <div
                     key={index}
                     className="relative p-3 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200 shadow-sm"
+                    style={{ position: 'relative' }}
                   >
-                    {/* Delete button positioned at top-right corner */}
-                    {onRemoveWinner && (
-                      <button
-                        onClick={() => onRemoveWinner(winner)}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors z-10"
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                    
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1 pr-6">
                       <span 
                         className="font-semibold"
                         style={{ color: winnerColor }}
                       >
                         {winner}
                       </span>
-                      <Badge className="bg-gradient-to-r from-violet-500 to-pink-500 text-white border-0">
-                        #{index + 1}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-gradient-to-r from-violet-500 to-pink-500 text-white border-0">
+                          #{index + 1}
+                        </Badge>
+                        {/* Delete button positioned at top-right corner */}
+                        {onRemoveWinner && (
+                          <button
+                            onClick={() => onRemoveWinner(winner)}
+                            className="w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors flex-shrink-0"
+                            style={{ minWidth: '24px', minHeight: '24px' }}
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {userInfo?.info && (
                       <div className="text-sm text-gray-600">
