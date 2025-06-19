@@ -1,6 +1,7 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Crown, Medal, Award } from 'lucide-react';
+import { Trophy, Crown, Medal, Award, X } from 'lucide-react';
 
 interface Prize {
   id: string;
@@ -21,9 +22,10 @@ interface WinnersListProps {
   users: User[];
   winnerColor: string;
   cardBgColor: string;
+  onRemoveWinner?: (winnerName: string) => void;
 }
 
-const WinnersList = ({ currentPrize, allPrizes, users, winnerColor, cardBgColor }: WinnersListProps) => {
+const WinnersList = ({ currentPrize, allPrizes, users, winnerColor, cardBgColor, onRemoveWinner }: WinnersListProps) => {
   const getIcon = (prizeName: string) => {
     if (prizeName.includes('Nhất')) return <Crown className="text-yellow-500" size={20} />;
     if (prizeName.includes('Nhì')) return <Trophy className="text-gray-400" size={20} />;
@@ -57,8 +59,18 @@ const WinnersList = ({ currentPrize, allPrizes, users, winnerColor, cardBgColor 
                 return (
                   <div
                     key={index}
-                    className="p-3 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200 shadow-sm"
+                    className="relative p-3 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200 shadow-sm"
                   >
+                    {/* Delete button positioned at top-right corner */}
+                    {onRemoveWinner && (
+                      <button
+                        onClick={() => onRemoveWinner(winner)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors z-10"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                    
                     <div className="flex items-center justify-between mb-1">
                       <span 
                         className="font-semibold"
