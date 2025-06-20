@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -440,11 +439,11 @@ const Index = () => {
     <div className="h-screen overflow-hidden flex flex-col" style={backgroundStyle}>
       {showConfetti && <ConfettiEffect />}
       
-      {/* Main Content Area - positioned close to top with floating buttons */}
-      <div className="flex-1 flex flex-col items-center justify-start pt-2" style={{ flex: '0 0 75%' }}>
+      {/* Main Content Area - responsive height */}
+      <div className="flex-1 flex flex-col items-center justify-start pt-2 lg:pt-4 xl:pt-6 2xl:pt-8">
         <div className="w-full max-w-2xl flex flex-col items-center justify-center relative">
-          {/* Floating Settings and Download Buttons - positioned at title level */}
-          <div className="absolute top-8 right-0 z-10 flex gap-2">
+          {/* Floating Settings and Download Buttons - positioned to the right with 24px margin */}
+          <div className="fixed top-8 right-6 z-10 flex gap-2">
             <Button 
               size="sm" 
               onClick={exportResults}
@@ -725,12 +724,12 @@ const Index = () => {
           </div>
 
           <div className="text-center mb-1">
-            <h1 className="text-4xl font-bold flex items-center justify-center gap-3" style={{ color: appTitleColor }}>
-              <Sparkles size={36} />
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center justify-center gap-2 lg:gap-3" style={{ color: appTitleColor }}>
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
               {appTitle}
-              <Sparkles size={36} />
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
             </h1>
-            <p className="text-lg" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
+            <p className="text-sm sm:text-base lg:text-lg xl:text-xl 2xl:text-2xl" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
           </div>
           
           {/* Prize Select */}
@@ -744,7 +743,7 @@ const Index = () => {
                 setLuckyNumber('000');
               }
             }}>
-              <SelectTrigger className="w-80 bg-transparent border-0 shadow-none text-xl font-bold flex items-center justify-center gap-2 focus:ring-0 focus:border-0 outline-none" style={{ color: prizeColor, boxShadow: 'none', border: 'none' }}>
+              <SelectTrigger className="w-60 sm:w-72 lg:w-80 xl:w-96 2xl:w-[28rem] bg-transparent border-0 shadow-none text-lg sm:text-xl lg:text-xl xl:text-2xl 2xl:text-3xl font-bold flex items-center justify-center gap-2 focus:ring-0 focus:border-0 outline-none" style={{ color: prizeColor, boxShadow: 'none', border: 'none' }}>
                 <SelectValue>
                   <div className="flex items-center gap-2">
                     {getPrizeIcon(currentPrize.name)}
@@ -767,12 +766,12 @@ const Index = () => {
           
           <Card className="w-full bg-transparent shadow-none border-0">
             <CardHeader className="text-center pb-1">
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-56 flex flex-col justify-center mb-1" style={{ background: luckyNumberBgColor + 'AA' }}>
-                <div className="text-9xl font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-32 sm:min-h-40 lg:min-h-48 xl:min-h-56 2xl:min-h-64 flex flex-col justify-center mb-1" style={{ background: luckyNumberBgColor + 'AA' }}>
+                <div className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[10rem] font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
               </div>
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-20 flex flex-col justify-center mb-4" style={{ background: winnerBgColor + 'AA' }}>
-                <div className="text-base font-semibold mb-1">{winnerLabel}</div>
-                <div className="text-2xl font-bold tracking-wide" style={{ color: winnerColor }}>
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-12 sm:min-h-16 lg:min-h-20 xl:min-h-20 2xl:min-h-24 flex flex-col justify-center mb-4" style={{ background: winnerBgColor + 'AA' }}>
+                <div className="text-xs sm:text-sm lg:text-base xl:text-base 2xl:text-lg font-semibold mb-1">{winnerLabel}</div>
+                <div className="text-lg sm:text-xl lg:text-2xl xl:text-2xl 2xl:text-3xl font-bold tracking-wide" style={{ color: winnerColor }}>
                   {winnerName
                     ? (<>
                         {winnerName}
@@ -787,11 +786,11 @@ const Index = () => {
             <CardContent className="flex flex-col items-center">
               <Button
                 size="lg"
-                className="w-full max-w-xl h-8 text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg hover:from-purple-500 hover:to-pink-500"
+                className="w-full max-w-xl h-6 sm:h-7 lg:h-8 xl:h-8 2xl:h-10 text-base sm:text-lg lg:text-lg xl:text-lg 2xl:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg hover:from-purple-500 hover:to-pink-500"
                 onClick={isDrawing ? stopDrawing : startDrawing}
                 disabled={currentPrize.winners.length >= currentPrize.quantity}
               >
-                <Play className="mr-2" size={16} />
+                <Play className="mr-2 w-3 h-3 sm:w-4 sm:h-4 lg:w-4 lg:h-4 xl:w-4 xl:h-4 2xl:w-5 2xl:h-5" />
                 {isDrawing ? drawingText : drawButtonText}
               </Button>
             </CardContent>
@@ -799,8 +798,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Winners List - 25% height with scrolling */}
-      <div className="bg-white/90 backdrop-blur-sm border-t border-gray-200 flex flex-col" style={{ flex: '0 0 25%' }}>
+      {/* Winners List - responsive height with 2 rows on laptop, 3 on desktop, 4 on projector */}
+      <div className="bg-white/90 backdrop-blur-sm border-t border-gray-200 flex flex-col h-32 lg:h-40 xl:h-48 2xl:h-56">
         <div className="p-4 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Gift size={20} />
