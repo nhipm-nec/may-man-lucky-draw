@@ -46,7 +46,7 @@ const Index = () => {
   
   // Prize management states
   const [newPrizeName, setNewPrizeName] = useState('');
-  const [newPrizeQuantity, setNewPrizeQuantity] = useState(1);
+  const [newPrizeQuantity, setNewPrizeQuantity] = useState<number | string>(1);
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
   
   // Customization states
@@ -71,7 +71,7 @@ const Index = () => {
   const [drawingText, setDrawingText] = useState('Đang quay...');
 
   // New state for speed control
-  const [spinSpeed, setSpinSpeed] = useState(100); // milliseconds between number changes
+  const [spinSpeed, setSpinSpeed] = useState<number | string>(100); // milliseconds between number changes
 
   // Settings dialog state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -104,6 +104,16 @@ const Index = () => {
   // Keyboard event handler
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         if (isDrawing) {
@@ -156,15 +166,16 @@ const Index = () => {
   };
 
   const addPrize = () => {
-    if (!newPrizeName.trim() || newPrizeQuantity < 1) {
+    const quantity = Number(newPrizeQuantity);
+    if (!newPrizeName.trim() || !Number.isInteger(quantity) || quantity < 1) {
       toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!');
       return;
     }
     
     const newPrize: Prize = {
       id: Date.now().toString(),
-      name: `${newPrizeName} (${newPrizeQuantity})`,
-      quantity: newPrizeQuantity,
+      name: `${newPrizeName} (${quantity})`,
+      quantity: quantity,
       winners: []
     };
     
@@ -202,14 +213,15 @@ const Index = () => {
   };
 
   const saveEditPrize = () => {
-    if (!editingPrize || !newPrizeName.trim() || newPrizeQuantity < 1) {
+    const quantity = Number(newPrizeQuantity);
+    if (!editingPrize || !newPrizeName.trim() || !Number.isInteger(quantity) || quantity < 1) {
       toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!');
       return;
     }
     
     const updatedPrizes = prizes.map(p => 
       p.id === editingPrize.id 
-        ? { ...p, name: `${newPrizeName} (${newPrizeQuantity})`, quantity: newPrizeQuantity }
+        ? { ...p, name: `${newPrizeName} (${quantity})`, quantity: quantity }
         : p
     );
     
@@ -256,7 +268,7 @@ const Index = () => {
     // Animated number spinning
     const interval = setInterval(() => {
       setLuckyNumber(Math.floor(Math.random() * 1000).toString().padStart(3, '0'));
-    }, spinSpeed);
+    }, Number(spinSpeed) || 100);
     
     setDrawingInterval(interval);
   };
@@ -605,16 +617,19 @@ const Index = () => {
                           <Label className="text-sm">Tốc độ quay số (ms)</Label>
                           <div className="flex items-center gap-2">
                             <Input
-                              type="number"
-                              min="50"
-                              max="500"
-                              step="10"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               value={spinSpeed}
-                              onChange={(e) => setSpinSpeed(parseInt(e.target.value) || 100)}
+                              onChange={(e) => {
+                                if (/^\d*$/.test(e.target.value)) {
+                                  setSpinSpeed(e.target.value);
+                                }
+                              }}
                               className="bg-gray-50 border-gray-200 rounded-lg"
                             />
                             <span className="text-sm text-gray-500">
-                              {spinSpeed < 100 ? 'Nhanh' : spinSpeed > 200 ? 'Chậm' : 'Vừa'}
+                              {Number(spinSpeed) < 100 ? 'Nhanh' : Number(spinSpeed) > 200 ? 'Chậm' : 'Vừa'}
                             </span>
                           </div>
                         </div>
@@ -663,10 +678,15 @@ const Index = () => {
                           <div>
                             <Label className="text-sm">Số lượt quay</Label>
                             <Input
-                              type="number"
-                              min="0"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               value={newPrizeQuantity}
-                              onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
+                              onChange={(e) => {
+                                if (/^\d*$/.test(e.target.value)) {
+                                  setNewPrizeQuantity(e.target.value);
+                                }
+                              }}
                               className="bg-white border-violet-200"
                             />
                           </div>
@@ -676,9 +696,9 @@ const Index = () => {
                                 <Button 
                                   onClick={saveEditPrize} 
                                   size="sm" 
-                                  disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                                  disabled={!newPrizeName.trim() || !newPrizeQuantity || Number(newPrizeQuantity) < 1}
                                   className={`${
-                                    !newPrizeName.trim() || newPrizeQuantity < 1
+                                    !newPrizeName.trim() || !newPrizeQuantity || Number(newPrizeQuantity) < 1
                                       ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
                                       : 'bg-green-500 hover:bg-green-600'
                                   } text-white border-0`}
@@ -693,9 +713,9 @@ const Index = () => {
                               <Button 
                                 onClick={addPrize} 
                                 size="sm" 
-                                disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                                disabled={!newPrizeName.trim() || !newPrizeQuantity || Number(newPrizeQuantity) < 1}
                                 className={`${
-                                  !newPrizeName.trim() || newPrizeQuantity < 1
+                                  !newPrizeName.trim() || !newPrizeQuantity || Number(newPrizeQuantity) < 1
                                     ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
                                     : 'bg-violet-500 hover:bg-violet-600'
                                 } text-white border-0`}
