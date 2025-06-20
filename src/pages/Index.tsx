@@ -893,7 +893,7 @@ const Index = () => {
       </div>
 
       {/* Winners List - reduced padding and cleaner look */}
-      <div className="bg-white/90 backdrop-blur-sm border-t border-gray-200 flex flex-col h-32 lg:h-40 xl:h-48 2xl:h-56">
+      <div className="bg-white/40 backdrop-blur-sm border-t border-gray-200 flex flex-col h-32 lg:h-40 xl:h-48 2xl:h-56">
         <div className="px-4 py-2 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Gift size={20} />
