@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -439,290 +440,290 @@ const Index = () => {
     <div className="h-screen overflow-hidden flex flex-col" style={backgroundStyle}>
       {showConfetti && <ConfettiEffect />}
       
-      {/* Settings Button - Top Right */}
-      <div className="absolute top-6 right-6 z-10 flex gap-2">
-        <Button 
-          size="sm" 
-          onClick={exportResults}
-          className="bg-white/80 hover:bg-white/90 text-gray-700 rounded-xl shadow-lg backdrop-blur-sm"
-        >
-          <Download size={20} />
-        </Button>
-        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-          <DialogTrigger asChild>
+      {/* Main Content Area - positioned close to top with floating buttons */}
+      <div className="flex-1 flex flex-col items-center justify-start pt-2" style={{ flex: '0 0 75%' }}>
+        <div className="w-full max-w-2xl flex flex-col items-center justify-center relative">
+          {/* Floating Settings and Download Buttons - positioned at title level */}
+          <div className="absolute top-8 right-0 z-10 flex gap-2">
             <Button 
               size="sm" 
+              onClick={exportResults}
               className="bg-white/80 hover:bg-white/90 text-gray-700 rounded-xl shadow-lg backdrop-blur-sm"
             >
-              <Settings size={20} />
+              <Download size={20} />
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-xl flex items-center gap-2">
-                <Settings size={24} />
-                Cài đặt
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-6 mt-4">
-              {/* Upload Section - Moved to top */}
-              <div className="grid grid-cols-1 gap-4">
-                {/* Upload người dùng */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Upload size={20} />
-                      Upload người chơi
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
-                      <Button 
-                        onClick={downloadTemplate}
-                        className="h-10 w-full md:w-40 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white border-0 text-xs font-medium px-3 gap-2"
-                      >
-                        <Download size={16} />
-                        <span>Tải template</span>
-                      </Button>
-
-                      <input
-                        type="file"
-                        accept=".xlsx"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        id="users-file"
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => document.getElementById('users-file')?.click()}
-                        className="h-10 w-full md:w-40 flex items-center justify-center bg-violet-500 hover:bg-violet-600 text-white border-0 text-xs font-medium px-3 gap-2"
-                      >
-                        <Upload size={16} />
-                        <span>Upload Excel</span>
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-2 text-center">Hiện có {users.length} người chơi</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Tùy chỉnh giao diện */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Tùy chỉnh giao diện</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-bold">Tiêu đề ứng dụng</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={appTitle} 
-                          onChange={(e) => setAppTitle(e.target.value)}
-                          className="bg-gray-50 border-gray-200 rounded-lg flex-1 font-bold"
-                        />
-                        <input
-                          type="color"
-                          value={appTitleColor}
-                          onChange={(e) => setAppTitleColor(e.target.value)}
-                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-bold">Mô tả</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={appSubtitle} 
-                          onChange={(e) => setAppSubtitle(e.target.value)}
-                          className="bg-gray-50 border-gray-200 rounded-lg flex-1 font-bold"
-                        />
-                        <input
-                          type="color"
-                          value={appSubtitleColor}
-                          onChange={(e) => setAppSubtitleColor(e.target.value)}
-                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div>
-                        <Label className="text-sm font-bold">Màu số may mắn</Label>
-                        <input
-                          type="color"
-                          value={luckyNumberColor}
-                          onChange={e => setLuckyNumberColor(e.target.value)}
-                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer ml-2"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-sm font-bold">Màu chữ chọn giải</Label>
-                        <input
-                          type="color"
-                          value={prizeColor}
-                          onChange={e => setPrizeColor(e.target.value)}
-                          className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer ml-2"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label className="text-sm">Font chữ</Label>
-                      <Select value={fontFamily} onValueChange={setFontFamily}>
-                        <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Inter">Inter</SelectItem>
-                          <SelectItem value="Roboto">Roboto</SelectItem>
-                          <SelectItem value="Poppins">Poppins</SelectItem>
-                          <SelectItem value="Nunito">Nunito</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label className="text-sm">Tốc độ quay số (ms)</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min="50"
-                          max="500"
-                          step="10"
-                          value={spinSpeed}
-                          onChange={(e) => setSpinSpeed(parseInt(e.target.value) || 100)}
-                          className="bg-gray-50 border-gray-200 rounded-lg"
-                        />
-                        <span className="text-sm text-gray-500">
-                          {spinSpeed < 100 ? 'Nhanh' : spinSpeed > 200 ? 'Chậm' : 'Vừa'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-bold">Ảnh nền</Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
-                        <Image className="mx-auto mb-2 text-gray-400" size={24} />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleBackgroundImageUpload}
-                          className="hidden"
-                          id="background-image"
-                        />
-                        <Button asChild size="sm" variant="outline" className="font-bold mt-2">
-                          <label htmlFor="background-image" className="cursor-pointer">
-                            <Upload size={14} className="mr-1" />
-                            Chọn ảnh
-                          </label>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Quản lý giải thưởng */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Gift size={20} />
-                      Quản lý giải thưởng
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200">
-                      <div>
-                        <Label className="text-sm">Tên giải thưởng</Label>
-                        <Input
-                          value={newPrizeName}
-                          onChange={(e) => setNewPrizeName(e.target.value)}
-                          placeholder="Nhập tên giải thưởng"
-                          className="bg-white border-violet-200"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-sm">Số lượt quay</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          value={newPrizeQuantity}
-                          onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
-                          className="bg-white border-violet-200"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        {editingPrize ? (
-                          <>
-                            <Button 
-                              onClick={saveEditPrize} 
-                              size="sm" 
-                              disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
-                              className={`${
-                                !newPrizeName.trim() || newPrizeQuantity < 1
-                                  ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
-                                  : 'bg-green-500 hover:bg-green-600'
-                              } text-white border-0`}
-                            >
-                              Lưu
-                            </Button>
-                            <Button onClick={cancelEditPrize} size="sm" variant="outline">
-                              Hủy
-                            </Button>
-                          </>
-                        ) : (
+            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  size="sm" 
+                  className="bg-white/80 hover:bg-white/90 text-gray-700 rounded-xl shadow-lg backdrop-blur-sm"
+                >
+                  <Settings size={20} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-xl flex items-center gap-2">
+                    <Settings size={24} />
+                    Cài đặt
+                  </DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-6 mt-4">
+                  {/* Upload Section - Moved to top */}
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Upload người dùng */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Upload size={20} />
+                          Upload người chơi
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
                           <Button 
-                            onClick={addPrize} 
-                            size="sm" 
-                            disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
-                            className={`${
-                              !newPrizeName.trim() || newPrizeQuantity < 1
-                                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
-                                : 'bg-violet-500 hover:bg-violet-600'
-                            } text-white border-0`}
+                            onClick={downloadTemplate}
+                            className="h-10 w-full md:w-40 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white border-0 text-xs font-medium px-3 gap-2"
                           >
-                            <Plus size={16} className="mr-1" />
-                            Thêm giải
+                            <Download size={16} />
+                            <span>Tải template</span>
                           </Button>
-                        )}
-                      </div>
-                    </div>
 
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {prizes.map(prize => (
-                        <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <span className="text-sm font-medium">{prize.name}</span>
-                          <div className="flex gap-1">
-                            <Button
-                              onClick={() => startEditPrize(prize)}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit size={12} />
-                            </Button>
-                            <Button
-                              onClick={() => deletePrize(prize.id)}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 size={12} />
+                          <input
+                            type="file"
+                            accept=".xlsx"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            id="users-file"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => document.getElementById('users-file')?.click()}
+                            className="h-10 w-full md:w-40 flex items-center justify-center bg-violet-500 hover:bg-violet-600 text-white border-0 text-xs font-medium px-3 gap-2"
+                          >
+                            <Upload size={16} />
+                            <span>Upload Excel</span>
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2 text-center">Hiện có {users.length} người chơi</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Tùy chỉnh giao diện */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">Tùy chỉnh giao diện</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-bold">Tiêu đề ứng dụng</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              value={appTitle} 
+                              onChange={(e) => setAppTitle(e.target.value)}
+                              className="bg-gray-50 border-gray-200 rounded-lg flex-1 font-bold"
+                            />
+                            <input
+                              type="color"
+                              value={appTitleColor}
+                              onChange={(e) => setAppTitleColor(e.target.value)}
+                              className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-bold">Mô tả</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              value={appSubtitle} 
+                              onChange={(e) => setAppSubtitle(e.target.value)}
+                              className="bg-gray-50 border-gray-200 rounded-lg flex-1 font-bold"
+                            />
+                            <input
+                              type="color"
+                              value={appSubtitleColor}
+                              onChange={(e) => setAppSubtitleColor(e.target.value)}
+                              className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-4">
+                          <div>
+                            <Label className="text-sm font-bold">Màu số may mắn</Label>
+                            <input
+                              type="color"
+                              value={luckyNumberColor}
+                              onChange={e => setLuckyNumberColor(e.target.value)}
+                              className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer ml-2"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm font-bold">Màu chữ chọn giải</Label>
+                            <input
+                              type="color"
+                              value={prizeColor}
+                              onChange={e => setPrizeColor(e.target.value)}
+                              className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer ml-2"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Font chữ</Label>
+                          <Select value={fontFamily} onValueChange={setFontFamily}>
+                            <SelectTrigger className="h-10 bg-gray-50 border-gray-200">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Inter">Inter</SelectItem>
+                              <SelectItem value="Roboto">Roboto</SelectItem>
+                              <SelectItem value="Poppins">Poppins</SelectItem>
+                              <SelectItem value="Nunito">Nunito</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label className="text-sm">Tốc độ quay số (ms)</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min="50"
+                              max="500"
+                              step="10"
+                              value={spinSpeed}
+                              onChange={(e) => setSpinSpeed(parseInt(e.target.value) || 100)}
+                              className="bg-gray-50 border-gray-200 rounded-lg"
+                            />
+                            <span className="text-sm text-gray-500">
+                              {spinSpeed < 100 ? 'Nhanh' : spinSpeed > 200 ? 'Chậm' : 'Vừa'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-bold">Ảnh nền</Label>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+                            <Image className="mx-auto mb-2 text-gray-400" size={24} />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleBackgroundImageUpload}
+                              className="hidden"
+                              id="background-image"
+                            />
+                            <Button asChild size="sm" variant="outline" className="font-bold mt-2">
+                              <label htmlFor="background-image" className="cursor-pointer">
+                                <Upload size={14} className="mr-1" />
+                                Chọn ảnh
+                              </label>
                             </Button>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+                      </CardContent>
+                    </Card>
 
-      {/* Main Content Area - 75% height */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8" style={{ flex: '0 0 75%' }}>
-        <div className="w-full max-w-2xl flex flex-col items-center justify-center">
+                    {/* Quản lý giải thưởng */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Gift size={20} />
+                          Quản lý giải thưởng
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-3 p-4 bg-gradient-to-r from-violet-50 to-pink-50 rounded-lg border border-violet-200">
+                          <div>
+                            <Label className="text-sm">Tên giải thưởng</Label>
+                            <Input
+                              value={newPrizeName}
+                              onChange={(e) => setNewPrizeName(e.target.value)}
+                              placeholder="Nhập tên giải thưởng"
+                              className="bg-white border-violet-200"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm">Số lượt quay</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              value={newPrizeQuantity}
+                              onChange={(e) => setNewPrizeQuantity(parseInt(e.target.value) || 0)}
+                              className="bg-white border-violet-200"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            {editingPrize ? (
+                              <>
+                                <Button 
+                                  onClick={saveEditPrize} 
+                                  size="sm" 
+                                  disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                                  className={`${
+                                    !newPrizeName.trim() || newPrizeQuantity < 1
+                                      ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                      : 'bg-green-500 hover:bg-green-600'
+                                  } text-white border-0`}
+                                >
+                                  Lưu
+                                </Button>
+                                <Button onClick={cancelEditPrize} size="sm" variant="outline">
+                                  Hủy
+                                </Button>
+                              </>
+                            ) : (
+                              <Button 
+                                onClick={addPrize} 
+                                size="sm" 
+                                disabled={!newPrizeName.trim() || newPrizeQuantity < 1}
+                                className={`${
+                                  !newPrizeName.trim() || newPrizeQuantity < 1
+                                    ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' 
+                                    : 'bg-violet-500 hover:bg-violet-600'
+                                } text-white border-0`}
+                              >
+                                <Plus size={16} className="mr-1" />
+                                Thêm giải
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {prizes.map(prize => (
+                            <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                              <span className="text-sm font-medium">{prize.name}</span>
+                              <div className="flex gap-1">
+                                <Button
+                                  onClick={() => startEditPrize(prize)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Edit size={12} />
+                                </Button>
+                                <Button
+                                  onClick={() => deletePrize(prize.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                                >
+                                  <Trash2 size={12} />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
           <div className="text-center mb-1">
             <h1 className="text-4xl font-bold flex items-center justify-center gap-3" style={{ color: appTitleColor }}>
               <Sparkles size={36} />
