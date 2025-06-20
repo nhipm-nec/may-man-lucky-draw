@@ -493,7 +493,14 @@ const Index = () => {
     <div className="h-screen overflow-hidden flex flex-col" style={backgroundStyle}>
       {showConfetti && <ConfettiEffect />}
       
-      {/* Main Content Area - reduced top padding and spacing */}
+      {/* Title section - full width, always stretches across the web */}
+      <div className="w-full mt-4 px-2">
+        <h1 className="w-full text-center break-words text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center justify-center gap-2 lg:gap-3" style={{ color: appTitleColor }}>
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
+          {appTitle}
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
+        </h1>
+      </div>
       <div className="flex-1 flex flex-col items-center justify-start pt-1 lg:pt-2 xl:pt-3 2xl:pt-4">
         <div className="w-full max-w-2xl flex flex-col items-center justify-center relative">
           {/* Floating Settings and Download Buttons */}
@@ -811,16 +818,15 @@ const Index = () => {
             </Dialog>
           </div>
 
-          {/* Title section - reduced margin */}
-          <div className="text-center mb-0.5">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center justify-center gap-2 lg:gap-3" style={{ color: appTitleColor }}>
+          {/* Title section - centered absolutely
+          <div className="flex justify-center w-full mb-0.5">
+            <h1 className="w-full max-w-full break-words text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center gap-2 lg:gap-3" style={{ color: appTitleColor }}>
               <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
               {appTitle}
               <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
             </h1>
-            <p className="text-sm sm:text-base lg:text-lg xl:text-xl 2xl:text-2xl" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
-          </div>
-          
+          </div> */}
+
           {/* Prize Select - reduced margin */}
           <div className="flex justify-center mb-0">
             <Select value={currentPrize.id} onValueChange={(value) => {
