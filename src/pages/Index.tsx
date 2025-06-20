@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -29,9 +29,9 @@ interface User {
 
 const Index = () => {
   const [currentPrize, setCurrentPrize] = useState<Prize>({
-    id: '1',
-    name: 'Giải Nhất (1)',
-    quantity: 1,
+    id: '',
+    name: '',
+    quantity: 0,
     winners: [],
     image: '',
   });
@@ -39,7 +39,7 @@ const Index = () => {
   const [users, setUsers] = useState<User[]>([]);
   
   const [prizes, setPrizes] = useState<Prize[]>([
-    { id: '1', name: 'Giải Nhất (1)', quantity: 1, winners: [], image: '' }
+
   ]);
   
   const [luckyNumber, setLuckyNumber] = useState<string>('000');
@@ -103,8 +103,8 @@ const Index = () => {
   }, [fontFamily]);
 
   // Function to get prize icon
-  const getPrizeIcon = (prizeName: string) => {
-    return <Gift className="text-blue-500" size={24} />;
+  const getPrizeIcon = (prizeName: string, color: string) => {
+    return <Gift className="" size={24} style={{ color }} />;
   };
 
   // Keyboard event handler
@@ -310,10 +310,7 @@ const Index = () => {
   const downloadTemplate = () => {
     const templateData = [
       { Number: 1, Name: 'Nguyễn Văn A', Note: 'Phòng IT' },
-      { Number: 2, Name: 'Trần Thị B', Note: 'Phòng HR' },
-      { Number: 3, Name: 'Lê Văn C', Note: 'Phòng Sales' },
-      { Number: 4, Name: 'Phạm Thị D', Note: 'Phòng Marketing' },
-      { Number: 5, Name: 'Hoàng Văn E', Note: 'Phòng Finance' }
+
     ];
 
     const workbook = XLSX.utils.book_new();
@@ -795,18 +792,7 @@ const Index = () => {
                                 <>
                                   <div className="flex items-center gap-3">
                                     {prize.image && <img src={prize.image} alt={prize.name} className="w-16 h-10 sm:w-20 sm:h-12 md:w-28 md:h-16 lg:w-36 lg:h-20 xl:w-44 xl:h-24 rounded-md object-cover"/>}
-                                    {prize.name.length > 15 ? (
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <span className="font-medium cursor-pointer">{prize.name.slice(0, 15) + '...'}</span>
-                                          </TooltipTrigger>
-                                          <TooltipContent>{prize.name}</TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    ) : (
-                                      <span className="font-medium">{prize.name}</span>
-                                    )}
+                                    <span className="font-medium break-words whitespace-normal w-full">{prize.name}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <Button variant="ghost" size="icon" onClick={() => startEditPrize(prize)}>
@@ -829,15 +815,6 @@ const Index = () => {
             </Dialog>
           </div>
 
-          {/* Title section - centered absolutely
-          <div className="flex justify-center w-full mb-0.5">
-            <h1 className="w-full max-w-full break-words text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center gap-2 lg:gap-3" style={{ color: appTitleColor }}>
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
-              {appTitle}
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
-            </h1>
-          </div> */}
-
           {/* Prize Select - reduced margin */}
           <div className="flex justify-center mb-0">
             <Select value={currentPrize.id} onValueChange={(value) => {
@@ -850,21 +827,11 @@ const Index = () => {
               }
             }}>
               <SelectTrigger className="w-60 sm:w-72 lg:w-80 xl:w-96 2xl:w-[28rem] bg-transparent border-0 shadow-none text-lg sm:text-xl lg:text-xl xl:text-2xl 2xl:text-3xl font-bold flex items-center justify-center gap-2 focus:ring-0 focus:border-0 outline-none" style={{ color: prizeColor, boxShadow: 'none', border: 'none' }}>
+               <SelectValue placeholder="Giải thưởng" />
                 <SelectValue>
                   <div className="flex items-center gap-2">
-                    {getPrizeIcon(currentPrize.name)}
-                    {currentPrize.name.length > 15 ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="font-medium cursor-pointer">{currentPrize.name.slice(0, 15) + '...'}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>{currentPrize.name}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <span className="font-medium">{currentPrize.name}</span>
-                    )}
+                    {getPrizeIcon(currentPrize.name, prizeColor)}
+                    <span className="font-medium break-words whitespace-normal w-full">{currentPrize.name}</span>
                   </div>
                 </SelectValue>
               </SelectTrigger>
@@ -872,19 +839,8 @@ const Index = () => {
                 {prizes.map(prize => (
                   <SelectItem key={prize.id} value={prize.id}>
                     <div className="flex items-center gap-2">
-                      {getPrizeIcon(prize.name)}
-                      {prize.name.length > 15 ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="font-medium cursor-pointer">{prize.name.slice(0, 15) + '...'}</span>
-                            </TooltipTrigger>
-                            <TooltipContent>{prize.name}</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <span className="font-medium">{prize.name}</span>
-                      )}
+                      {getPrizeIcon(prize.name, prizeColor)}
+                      <span className="font-medium break-words whitespace-normal w-full">{prize.name}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -916,10 +872,6 @@ const Index = () => {
                 </div>
               </div>
 
-
-
-
-              
               {/* Winner display - reduced height and margin */}
               <div className="w-full max-w-xl mx-auto rounded-2xl min-h-10 sm:min-h-12 lg:min-h-14 xl:min-h-16 2xl:min-h-18 flex flex-col justify-center mb-[8px] p-2" style={{ background: winnerBgColor + 'AA' }}>
                 <div className="text-base sm:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-semibold mb-0.5">{winnerLabel}</div>
