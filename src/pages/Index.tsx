@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -439,10 +440,10 @@ const Index = () => {
     <div className="h-screen overflow-hidden flex flex-col" style={backgroundStyle}>
       {showConfetti && <ConfettiEffect />}
       
-      {/* Main Content Area - responsive height */}
-      <div className="flex-1 flex flex-col items-center justify-start pt-2 lg:pt-4 xl:pt-6 2xl:pt-8">
+      {/* Main Content Area - reduced top padding and spacing */}
+      <div className="flex-1 flex flex-col items-center justify-start pt-1 lg:pt-2 xl:pt-3 2xl:pt-4">
         <div className="w-full max-w-2xl flex flex-col items-center justify-center relative">
-          {/* Floating Settings and Download Buttons - positioned to the right with 24px margin */}
+          {/* Floating Settings and Download Buttons */}
           <div className="fixed top-8 right-6 z-10 flex gap-2">
             <Button 
               size="sm" 
@@ -723,7 +724,8 @@ const Index = () => {
             </Dialog>
           </div>
 
-          <div className="text-center mb-1">
+          {/* Title section - reduced margin */}
+          <div className="text-center mb-0.5">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center justify-center gap-2 lg:gap-3" style={{ color: appTitleColor }}>
               <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
               {appTitle}
@@ -732,7 +734,7 @@ const Index = () => {
             <p className="text-sm sm:text-base lg:text-lg xl:text-xl 2xl:text-2xl" style={{ color: appSubtitleColor }}>{appSubtitle}</p>
           </div>
           
-          {/* Prize Select */}
+          {/* Prize Select - reduced margin */}
           <div className="flex justify-center mb-0">
             <Select value={currentPrize.id} onValueChange={(value) => {
               const prize = prizes.find(p => p.id === value);
@@ -764,13 +766,17 @@ const Index = () => {
             </Select>
           </div>
           
+          {/* Lucky number and winner display - tightened spacing */}
           <Card className="w-full bg-transparent shadow-none border-0">
-            <CardHeader className="text-center pb-1">
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-32 sm:min-h-40 lg:min-h-48 xl:min-h-56 2xl:min-h-64 flex flex-col justify-center mb-1" style={{ background: luckyNumberBgColor + 'AA' }}>
-                <div className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[10rem] font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
+            <CardHeader className="text-center pb-0.5">
+              {/* Lucky number display */}
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-28 sm:min-h-32 lg:min-h-36 xl:min-h-40 2xl:min-h-44 flex flex-col justify-center mb-1" style={{ background: luckyNumberBgColor + 'AA' }}>
+                <div className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
               </div>
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-12 sm:min-h-16 lg:min-h-20 xl:min-h-20 2xl:min-h-24 flex flex-col justify-center mb-4" style={{ background: winnerBgColor + 'AA' }}>
-                <div className="text-xs sm:text-sm lg:text-base xl:text-base 2xl:text-lg font-semibold mb-1">{winnerLabel}</div>
+              
+              {/* Winner display - reduced height and margin */}
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-10 sm:min-h-12 lg:min-h-14 xl:min-h-16 2xl:min-h-18 flex flex-col justify-center mb-2" style={{ background: winnerBgColor + 'AA' }}>
+                <div className="text-xs sm:text-sm lg:text-base xl:text-base 2xl:text-lg font-semibold mb-0.5">{winnerLabel}</div>
                 <div className="text-lg sm:text-xl lg:text-2xl xl:text-2xl 2xl:text-3xl font-bold tracking-wide" style={{ color: winnerColor }}>
                   {winnerName
                     ? (<>
@@ -783,7 +789,9 @@ const Index = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex flex-col items-center">
+            
+            {/* Button - moved closer with reduced margin */}
+            <CardContent className="flex flex-col items-center pt-0">
               <Button
                 size="lg"
                 className="w-full max-w-xl h-6 sm:h-7 lg:h-8 xl:h-8 2xl:h-10 text-base sm:text-lg lg:text-lg xl:text-lg 2xl:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg hover:from-purple-500 hover:to-pink-500"
@@ -798,9 +806,9 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Winners List - responsive height with 2 rows on laptop, 3 on desktop, 4 on projector */}
+      {/* Winners List - reduced padding and cleaner look */}
       <div className="bg-white/90 backdrop-blur-sm border-t border-gray-200 flex flex-col h-32 lg:h-40 xl:h-48 2xl:h-56">
-        <div className="p-4 border-b border-gray-200 flex-shrink-0">
+        <div className="px-4 py-2 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Gift size={20} />
             Người thắng {currentPrize.name}
@@ -810,7 +818,7 @@ const Index = () => {
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto px-4 py-2">
           {currentPrize.winners.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {currentPrize.winners.map((winner, index) => {
@@ -820,7 +828,7 @@ const Index = () => {
                     key={index}
                     className="group relative flex items-center bg-gradient-to-r from-violet-50 to-pink-50 rounded-full border border-violet-200 shadow-sm hover:shadow-md transition-all duration-200 px-4 py-1.5"
                   >
-                    {/* Delete button - positioned outside the card */}
+                    {/* Delete button */}
                     <button
                       onClick={() => setDeleteWinnerIndex(index)}
                       className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 z-20"
@@ -845,7 +853,7 @@ const Index = () => {
                       )}
                     </span>
                     
-                    {/* Dialog xác nhận xoá */}
+                    {/* Delete confirmation dialog */}
                     <Dialog open={deleteWinnerIndex === index} onOpenChange={open => !open && setDeleteWinnerIndex(null)}>
                       <DialogContent className="max-w-xs text-center">
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -856,7 +864,7 @@ const Index = () => {
                           <div className="flex gap-2 justify-center mt-2">
                             <Button variant="outline" className="font-bold" onClick={() => setDeleteWinnerIndex(null)}>Huỷ</Button>
                             <Button variant="destructive" className="font-bold" onClick={() => {
-                              // Xoá khỏi winners
+                              // Remove from winners
                               const updatedWinners = currentPrize.winners.filter((w, i) => i !== index);
                               const updatedPrizes = prizes.map(prize =>
                                 prize.id === currentPrize.id
@@ -877,7 +885,7 @@ const Index = () => {
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500 flex flex-col items-center justify-center">
+            <div className="text-center py-6 text-gray-500 flex flex-col items-center justify-center">
               <Gift size={32} className="mx-auto mb-2 opacity-50" />
               <p>Chưa có người thắng</p>
             </div>
