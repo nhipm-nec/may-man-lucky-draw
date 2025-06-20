@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ interface Prize {
   name: string;
   quantity: number;
   winners: string[];
+  image?: string;
 }
 
 interface User {
@@ -30,13 +31,14 @@ const Index = () => {
     id: '1',
     name: 'Giải Nhất (1)',
     quantity: 1,
-    winners: []
+    winners: [],
+    image: '',
   });
   
   const [users, setUsers] = useState<User[]>([]);
   
   const [prizes, setPrizes] = useState<Prize[]>([
-    { id: '1', name: 'Giải Nhất (1)', quantity: 1, winners: [] }
+    { id: '1', name: 'Giải Nhất (1)', quantity: 1, winners: [], image: '' }
   ]);
   
   const [luckyNumber, setLuckyNumber] = useState<string>('000');
@@ -48,6 +50,7 @@ const Index = () => {
   const [newPrizeName, setNewPrizeName] = useState('');
   const [newPrizeQuantity, setNewPrizeQuantity] = useState<number | string>(1);
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
+  const [newPrizeImage, setNewPrizeImage] = useState<string | null>(null);
   
   // Customization states
   const [backgroundColor, setBackgroundColor] = useState('#fef7ff');
@@ -77,13 +80,15 @@ const Index = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Drawing interval reference
-  const [drawingInterval, setDrawingInterval] = useState<NodeJS.Timeout | null>(null);
+  const drawingInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Track if first draw has been started
   const [hasStartedFirstDraw, setHasStartedFirstDraw] = useState(false);
 
   // Thêm state cho dialog xoá
   const [deleteWinnerIndex, setDeleteWinnerIndex] = useState<number|null>(null);
+
+  const prizeImageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Remove old style if exists
@@ -131,9 +136,9 @@ const Index = () => {
   }, [isDrawing, hasStartedFirstDraw, currentPrize.winners.length, currentPrize.quantity]);
 
   const stopDrawing = () => {
-    if (drawingInterval) {
-      clearInterval(drawingInterval);
-      setDrawingInterval(null);
+    if (drawingInterval.current) {
+      clearInterval(drawingInterval.current);
+      drawingInterval.current = null;
     }
 
     const availableUsers = users.filter(user => 
@@ -176,12 +181,14 @@ const Index = () => {
       id: Date.now().toString(),
       name: `${newPrizeName} (${quantity})`,
       quantity: quantity,
-      winners: []
+      winners: [],
+      image: newPrizeImage || '',
     };
     
     setPrizes([...prizes, newPrize]);
     setNewPrizeName('');
     setNewPrizeQuantity(1);
+    setNewPrizeImage(null);
     toast.success('Đã thêm giải thưởng mới!');
   };
 
@@ -206,10 +213,12 @@ const Index = () => {
     const match = prize.name.match(/^(.+)\s+\((\d+)\)$/);
     if (match) {
       setNewPrizeName(match[1]);
+      setNewPrizeQuantity(parseInt(match[2], 10));
     } else {
       setNewPrizeName(prize.name);
+      setNewPrizeQuantity(prize.quantity);
     }
-    setNewPrizeQuantity(1);
+    setNewPrizeImage(prize.image || null);
   };
 
   const saveEditPrize = () => {
@@ -221,7 +230,7 @@ const Index = () => {
     
     const updatedPrizes = prizes.map(p => 
       p.id === editingPrize.id 
-        ? { ...p, name: `${newPrizeName} (${quantity})`, quantity: quantity }
+        ? { ...p, name: `${newPrizeName} (${quantity})`, quantity: quantity, image: newPrizeImage || p.image }
         : p
     );
     
@@ -237,6 +246,7 @@ const Index = () => {
     setEditingPrize(null);
     setNewPrizeName('');
     setNewPrizeQuantity(1);
+    setNewPrizeImage(null);
     toast.success('Đã cập nhật giải thưởng!');
   };
 
@@ -244,6 +254,7 @@ const Index = () => {
     setEditingPrize(null);
     setNewPrizeName('');
     setNewPrizeQuantity(1);
+    setNewPrizeImage(null);
   };
 
   const startDrawing = () => {
@@ -257,20 +268,20 @@ const Index = () => {
     }
     
     if (currentPrize.winners.length >= currentPrize.quantity) {
-      toast.error('Giải thưởng này đã hết!');
+      toast.info('Giải thưởng này đã quay đủ số lượng.');
       return;
     }
     
     setIsDrawing(true);
-    setWinnerName('');
     setHasStartedFirstDraw(true);
-    
-    // Animated number spinning
-    const interval = setInterval(() => {
-      setLuckyNumber(Math.floor(Math.random() * 1000).toString().padStart(3, '0'));
+
+    // Start a fast-spinning animation
+    drawingInterval.current = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * users.length);
+      const randomUser = users[randomIndex];
+      setLuckyNumber((randomIndex + 1).toString().padStart(3, '0'));
+      setWinnerName(randomUser.name);
     }, Number(spinSpeed) || 100);
-    
-    setDrawingInterval(interval);
   };
   
   const exportResults = () => {
@@ -410,14 +421,16 @@ const Index = () => {
             id: (index + 1).toString(),
             name: row['Name'] || `Giải ${index + 1}`,
             quantity: parseInt(row['Quantity']) || 1,
-            winners: []
+            winners: [],
+            image: '',
           }));
         } else if ('Tên' in firstRow && 'Số lượng' in firstRow) {
           newPrizes = jsonData.map((row: any, index) => ({
             id: (index + 1).toString(),
             name: row['Tên'] || `Giải ${index + 1}`,
             quantity: parseInt(row['Số lượng']) || 1,
-            winners: []
+            winners: [],
+            image: '',
           }));
         } else {
           toast.error('File giải thưởng phải có các cột: Name, Quantity hoặc Tên, Số lượng!');
@@ -447,6 +460,24 @@ const Index = () => {
       toast.success('Đã tải lên ảnh nền thành công!');
     };
     reader.readAsDataURL(file);
+  };
+
+  const handlePrizeImageButtonClick = () => {
+    if (prizeImageInputRef.current) {
+      prizeImageInputRef.current.click();
+    }
+  };
+
+  const handlePrizeImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setNewPrizeImage(e.target?.result as string);
+        toast.success('Đã chọn ảnh!');
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const backgroundStyle = backgroundImage 
@@ -690,6 +721,11 @@ const Index = () => {
                               className="bg-white border-violet-200"
                             />
                           </div>
+                          {/* Image upload for add/edit prize */}
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" onClick={handlePrizeImageButtonClick} variant="outline">Chọn ảnh</Button>
+                            {newPrizeImage && <img src={newPrizeImage} alt="preview" className="w-10 h-10 rounded-md object-cover" />}
+                          </div>
                           <div className="flex gap-2">
                             {editingPrize ? (
                               <>
@@ -727,28 +763,43 @@ const Index = () => {
                           </div>
                         </div>
 
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {prizes.map(prize => (
+                        <div className="space-y-2 h-64 overflow-y-auto">
+                          {[...prizes].reverse().map(prize => (
                             <div key={prize.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                              <span className="text-sm font-medium">{prize.name}</span>
-                              <div className="flex gap-1">
-                                <Button
-                                  onClick={() => startEditPrize(prize)}
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Edit size={12} />
-                                </Button>
-                                <Button
-                                  onClick={() => deletePrize(prize.id)}
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
-                                >
-                                  <Trash2 size={12} />
-                                </Button>
-                              </div>
+                              {editingPrize && editingPrize.id === prize.id ? (
+                                <div className="flex-grow flex items-center gap-2">
+                                  <Input 
+                                    value={newPrizeName} 
+                                    onChange={(e) => setNewPrizeName(e.target.value)}
+                                    className="h-9"
+                                    placeholder="Tên giải thưởng"
+                                  />
+                                  <Input 
+                                    type="number" 
+                                    value={newPrizeQuantity} 
+                                    onChange={(e) => setNewPrizeQuantity(e.target.value)}
+                                    className="h-9 w-20"
+                                    min={1}
+                                    placeholder="S.L"
+                                  />
+                                  {/* Remove image button here, handled above */}
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-3">
+                                    {prize.image && <img src={prize.image} alt={prize.name} className="w-16 h-10 rounded-md object-cover"/>}
+                                    <span className="font-medium">{prize.name}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button variant="ghost" size="icon" onClick={() => startEditPrize(prize)}>
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => deletePrize(prize.id)}>
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -801,19 +852,25 @@ const Index = () => {
               </SelectContent>
             </Select>
           </div>
+          {/* Prize image preview below select, exactly 2px spacing above and below */}
+          {currentPrize.image && (
+            <div className="flex flex-col items-center p-0 m-0">
+              <img src={currentPrize.image} alt={currentPrize.name} className="w-16 h-10 rounded-md object-cover mt-[2px] mb-[2px] p-0 m-0 border-0 shadow-none" />
+            </div>
+          )}
           
           {/* Lucky number and winner display - tightened spacing */}
           <Card className="w-full bg-transparent shadow-none border-0">
             <CardHeader className="text-center pb-0.5">
               {/* Lucky number display */}
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-28 sm:min-h-32 lg:min-h-36 xl:min-h-40 2xl:min-h-44 flex flex-col justify-center mb-1" style={{ background: luckyNumberBgColor + 'AA' }}>
-                <div className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-28 sm:min-h-32 lg:min-h-36 xl:min-h-40 2xl:min-h-44 flex flex-col justify-center mb-[8px]" style={{ background: luckyNumberBgColor + 'AA' }}>
+                <div className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[6rem] font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
               </div>
               
               {/* Winner display - reduced height and margin */}
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-10 sm:min-h-12 lg:min-h-14 xl:min-h-16 2xl:min-h-18 flex flex-col justify-center mb-2" style={{ background: winnerBgColor + 'AA' }}>
-                <div className="text-xs sm:text-sm lg:text-base xl:text-base 2xl:text-lg font-semibold mb-0.5">{winnerLabel}</div>
-                <div className="text-lg sm:text-xl lg:text-2xl xl:text-2xl 2xl:text-3xl font-bold tracking-wide" style={{ color: winnerColor }}>
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-10 sm:min-h-12 lg:min-h-14 xl:min-h-16 2xl:min-h-18 flex flex-col justify-center mb-[8px]" style={{ background: winnerBgColor + 'AA' }}>
+                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-semibold mb-0.5">{winnerLabel}</div>
+                <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold tracking-wide" style={{ color: winnerColor }}>
                   {winnerName
                     ? (<>
                         {winnerName}
@@ -830,11 +887,11 @@ const Index = () => {
             <CardContent className="flex flex-col items-center pt-0">
               <Button
                 size="lg"
-                className="w-full max-w-xl h-6 sm:h-7 lg:h-8 xl:h-8 2xl:h-10 text-base sm:text-lg lg:text-lg xl:text-lg 2xl:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg hover:from-purple-500 hover:to-pink-500"
+                className="w-full max-w-xl h-12 text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg hover:from-purple-500 hover:to-pink-500"
                 onClick={isDrawing ? stopDrawing : startDrawing}
                 disabled={currentPrize.winners.length >= currentPrize.quantity}
               >
-                <Play className="mr-2 w-3 h-3 sm:w-4 sm:h-4 lg:w-4 lg:h-4 xl:w-4 xl:h-4 2xl:w-5 2xl:h-5" />
+                <Play className="mr-2 w-5 h-5" />
                 {isDrawing ? drawingText : drawButtonText}
               </Button>
             </CardContent>
@@ -928,6 +985,14 @@ const Index = () => {
           )}
         </div>
       </div>
+
+      <input 
+        type="file" 
+        ref={prizeImageInputRef} 
+        onChange={handlePrizeImageUpload} 
+        className="hidden"
+        accept="image/*"
+      />
     </div>
   );
 };
