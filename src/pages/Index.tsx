@@ -794,7 +794,7 @@ const Index = () => {
                               ) : (
                                 <>
                                   <div className="flex items-center gap-3">
-                                    {prize.image && <img src={prize.image} alt={prize.name} className="w-16 h-10 rounded-md object-cover"/>}
+                                    {prize.image && <img src={prize.image} alt={prize.name} className="w-16 h-10 sm:w-20 sm:h-12 md:w-28 md:h-16 lg:w-36 lg:h-20 xl:w-44 xl:h-24 rounded-md object-cover"/>}
                                     <span className="font-medium">{prize.name}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -861,7 +861,7 @@ const Index = () => {
           {/* Prize image preview below select, exactly 2px spacing above and below */}
           {currentPrize.image && (
             <div className="flex flex-col items-center p-0 m-0">
-              <img src={currentPrize.image} alt={currentPrize.name} className="w-16 h-10 rounded-md object-cover mt-[2px] mb-[2px] p-0 m-0 border-0 shadow-none" />
+              <img src={currentPrize.image} alt={currentPrize.name} className="w-16 h-10 sm:w-20 sm:h-12 md:w-28 md:h-16 lg:w-36 lg:h-20 xl:w-44 xl:h-24 rounded-md object-cover mt-[2px] mb-[2px] p-0 m-0 border-0 shadow-none" />
             </div>
           )}
           
