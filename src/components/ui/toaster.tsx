@@ -23,7 +23,7 @@ export function Toaster() {
               )}
             </div>
             {action}
-            <ToastClose />
+            <ToastClose className="absolute right-2 top-2 rounded-md p-1 text-foreground/80 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 opacity-100" />
           </Toast>
         )
       })}

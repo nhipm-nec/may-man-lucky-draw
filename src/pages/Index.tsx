@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import WinnersList from '@/components/WinnersList';
 import * as XLSX from 'xlsx';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface Prize {
   id: string;
@@ -173,7 +174,7 @@ const Index = () => {
   const addPrize = () => {
     const quantity = Number(newPrizeQuantity);
     if (!newPrizeName.trim() || !Number.isInteger(quantity) || quantity < 1) {
-      toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!');
+      toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       return;
     }
     
@@ -189,12 +190,12 @@ const Index = () => {
     setNewPrizeName('');
     setNewPrizeQuantity(1);
     setNewPrizeImage(null);
-    toast.success('Đã thêm giải thưởng mới!');
+    toast.success('Đã thêm giải thưởng mới!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
   };
 
   const deletePrize = (prizeId: string) => {
     if (prizes.length <= 1) {
-      toast.error('Phải có ít nhất một giải thưởng!');
+      toast.error('Phải có ít nhất một giải thưởng!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       return;
     }
     
@@ -205,7 +206,7 @@ const Index = () => {
       setCurrentPrize(updatedPrizes[0]);
     }
     
-    toast.success('Đã xóa giải thưởng!');
+    toast.success('Đã xóa giải thưởng!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
   };
 
   const startEditPrize = (prize: Prize) => {
@@ -224,7 +225,7 @@ const Index = () => {
   const saveEditPrize = () => {
     const quantity = Number(newPrizeQuantity);
     if (!editingPrize || !newPrizeName.trim() || !Number.isInteger(quantity) || quantity < 1) {
-      toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!');
+      toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       return;
     }
     
@@ -247,7 +248,7 @@ const Index = () => {
     setNewPrizeName('');
     setNewPrizeQuantity(1);
     setNewPrizeImage(null);
-    toast.success('Đã cập nhật giải thưởng!');
+    toast.success('Đã cập nhật giải thưởng!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
   };
 
   const cancelEditPrize = () => {
@@ -263,24 +264,23 @@ const Index = () => {
     );
     
     if (availableUsers.length === 0) {
-      toast.error('Không còn người dùng nào để quay thưởng!');
+      toast.error('Không còn người dùng nào để quay thưởng!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       return;
     }
     
     if (currentPrize.winners.length >= currentPrize.quantity) {
-      toast.info('Giải thưởng này đã quay đủ số lượng.');
+      toast.info('Giải thưởng này đã quay đủ số lượng.', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       return;
     }
     
     setIsDrawing(true);
     setHasStartedFirstDraw(true);
 
-    // Start a fast-spinning animation
     drawingInterval.current = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * users.length);
-      const randomUser = users[randomIndex];
-      setLuckyNumber((randomIndex + 1).toString().padStart(3, '0'));
-      setWinnerName(randomUser.name);
+      // Random 3 số bất kỳ từ 000 đến 999
+      const randomNum = Math.floor(Math.random() * 1000);
+      setLuckyNumber(randomNum.toString().padStart(3, '0'));
+      // KHÔNG setWinnerName ở đây!
     }, Number(spinSpeed) || 100);
   };
   
@@ -304,7 +304,7 @@ const Index = () => {
     a.click();
     URL.revokeObjectURL(url);
     
-    toast.success('Đã xuất kết quả thành công!');
+    toast.success('Đã xuất kết quả thành công!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
   };
 
   const downloadTemplate = () => {
@@ -321,7 +321,7 @@ const Index = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
     XLSX.writeFile(workbook, 'template-nguoi-dung.xlsx');
     
-    toast.success('Đã tải xuống template thành công!');
+    toast.success('Đã tải xuống template thành công!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
   };
 
   const downloadPrizeTemplate = () => {
@@ -337,7 +337,7 @@ const Index = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Prizes');
     XLSX.writeFile(workbook, 'template-giai-thuong.xlsx');
     
-    toast.success('Đã tải xuống template giải thưởng thành công!');
+    toast.success('Đã tải xuống template giải thưởng thành công!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,7 +355,7 @@ const Index = () => {
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
         if (jsonData.length === 0) {
-          toast.error('File trống hoặc không đúng định dạng!');
+          toast.error('File trống hoặc không đúng định dạng!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
           return;
         }
         
@@ -375,7 +375,7 @@ const Index = () => {
             info: row['Info'] || ''
           }));
         } else {
-          toast.error('File người dùng phải có các cột: Number, Name, Note hoặc ID, Name, Info!');
+          toast.error('File người dùng phải có các cột: Number, Name, Note hoặc ID, Name, Info!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
           return;
         }
         
@@ -385,10 +385,10 @@ const Index = () => {
         setCurrentPrize(prev => prev ? { ...prev, winners: [] } : prev);
         setWinnerName('');
         setLuckyNumber('000');
-        toast.success(`Đã tải lên ${newUsers.length} người dùng!`);
+        toast.success(`Đã tải lên ${newUsers.length} người dùng!`, { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       } catch (error) {
         console.error('Error parsing Excel file:', error);
-        toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!');
+        toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       }
     };
     reader.readAsArrayBuffer(file);
@@ -409,7 +409,7 @@ const Index = () => {
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
         if (jsonData.length === 0) {
-          toast.error('File trống hoặc không đúng định dạng!');
+          toast.error('File trống hoặc không đúng định dạng!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
           return;
         }
         
@@ -433,17 +433,17 @@ const Index = () => {
             image: '',
           }));
         } else {
-          toast.error('File giải thưởng phải có các cột: Name, Quantity hoặc Tên, Số lượng!');
+          toast.error('File giải thưởng phải có các cột: Name, Quantity hoặc Tên, Số lượng!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
           return;
         }
         
         setPrizes(newPrizes);
         setCurrentPrize(newPrizes[0]);
         setHasStartedFirstDraw(false);
-        toast.success(`Đã tải lên ${newPrizes.length} giải thưởng!`);
+        toast.success(`Đã tải lên ${newPrizes.length} giải thưởng!`, { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       } catch (error) {
         console.error('Error parsing Excel file:', error);
-        toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!');
+        toast.error('Lỗi xử lý file Excel. Vui lòng kiểm tra lại định dạng file!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       }
     };
     reader.readAsArrayBuffer(file);
@@ -457,7 +457,7 @@ const Index = () => {
     reader.onload = (e) => {
       const imageUrl = e.target?.result as string;
       setBackgroundImage(imageUrl);
-      toast.success('Đã tải lên ảnh nền thành công!');
+      toast.success('Đã tải lên ảnh nền thành công!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
     };
     reader.readAsDataURL(file);
   };
@@ -474,7 +474,7 @@ const Index = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         setNewPrizeImage(e.target?.result as string);
-        toast.success('Đã chọn ảnh!');
+        toast.success('Đã chọn ảnh!', { duration: 2000, action: { label: 'Đóng', onClick: () => toast.dismiss() } });
       };
       reader.readAsDataURL(file);
     }
@@ -795,7 +795,18 @@ const Index = () => {
                                 <>
                                   <div className="flex items-center gap-3">
                                     {prize.image && <img src={prize.image} alt={prize.name} className="w-16 h-10 sm:w-20 sm:h-12 md:w-28 md:h-16 lg:w-36 lg:h-20 xl:w-44 xl:h-24 rounded-md object-cover"/>}
-                                    <span className="font-medium">{prize.name}</span>
+                                    {prize.name.length > 15 ? (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span className="font-medium cursor-pointer">{prize.name.slice(0, 15) + '...'}</span>
+                                          </TooltipTrigger>
+                                          <TooltipContent>{prize.name}</TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    ) : (
+                                      <span className="font-medium">{prize.name}</span>
+                                    )}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <Button variant="ghost" size="icon" onClick={() => startEditPrize(prize)}>
@@ -842,7 +853,18 @@ const Index = () => {
                 <SelectValue>
                   <div className="flex items-center gap-2">
                     {getPrizeIcon(currentPrize.name)}
-                    {currentPrize.name}
+                    {currentPrize.name.length > 15 ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="font-medium cursor-pointer">{currentPrize.name.slice(0, 15) + '...'}</span>
+                          </TooltipTrigger>
+                          <TooltipContent>{currentPrize.name}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span className="font-medium">{currentPrize.name}</span>
+                    )}
                   </div>
                 </SelectValue>
               </SelectTrigger>
@@ -851,7 +873,18 @@ const Index = () => {
                   <SelectItem key={prize.id} value={prize.id}>
                     <div className="flex items-center gap-2">
                       {getPrizeIcon(prize.name)}
-                      {prize.name} ({prize.winners.length}/{prize.quantity})
+                      {prize.name.length > 15 ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="font-medium cursor-pointer">{prize.name.slice(0, 15) + '...'}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{prize.name}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <span className="font-medium">{prize.name}</span>
+                      )}
                     </div>
                   </SelectItem>
                 ))}
@@ -867,24 +900,40 @@ const Index = () => {
           
           {/* Lucky number and winner display - tightened spacing */}
           <Card className="w-full bg-transparent shadow-none border-0">
-            <CardHeader className="text-center pb-0.5">
+            <CardHeader className="text-center">
               {/* Lucky number display */}
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-28 sm:min-h-32 lg:min-h-36 xl:min-h-40 2xl:min-h-44 flex flex-col justify-center mb-[8px]" style={{ background: luckyNumberBgColor + 'AA' }}>
-                <div className="text-6xl sm:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[6rem] font-extrabold tracking-widest" style={{ color: luckyNumberColor }}>{luckyNumber}</div>
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-28 sm:min-h-32 lg:min-h-36 xl:min-h-40 2xl:min-h-44 flex flex-col justify-center" style={{ background: luckyNumberBgColor + 'AA' }}>
+                <div
+                  className={
+                    (currentPrize.image
+                      ? "text-6xl sm:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[6rem]"
+                      : "text-[4rem] sm:text-[6rem] lg:text-[8rem] xl:text-[10rem] 2xl:text-[14rem]")
+                    + " font-extrabold tracking-widest"
+                  }
+                  style={{ color: luckyNumberColor }}
+                >
+                  {luckyNumber}
+                </div>
               </div>
+
+
+
+
               
               {/* Winner display - reduced height and margin */}
-              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-10 sm:min-h-12 lg:min-h-14 xl:min-h-16 2xl:min-h-18 flex flex-col justify-center mb-[8px]" style={{ background: winnerBgColor + 'AA' }}>
+              <div className="w-full max-w-xl mx-auto rounded-2xl min-h-10 sm:min-h-12 lg:min-h-14 xl:min-h-16 2xl:min-h-18 flex flex-col justify-center mb-[8px] p-2" style={{ background: winnerBgColor + 'AA' }}>
                 <div className="text-base sm:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-semibold mb-0.5">{winnerLabel}</div>
-                <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold tracking-wide" style={{ color: winnerColor }}>
-                  {winnerName
-                    ? (<>
-                        {winnerName}
-                        {users.find(user => user.name === winnerName)?.info && (
-                          <span className="text-gray-600 ml-1">- {users.find(user => user.name === winnerName)?.info}</span>
-                        )}
-                      </>)
-                    : '---'}
+                <div className="text-xl sm:text-2xl xl:text-3xl 2xl:text-4xl font-bold tracking-wide" style={{ color: winnerColor }}>
+                  {isDrawing
+                    ? '---'
+                    : (winnerName
+                        ? (<>
+                            {winnerName}
+                            {users.find(user => user.name === winnerName)?.info && (
+                              <span className="text-gray-600 ml-1">- {users.find(user => user.name === winnerName)?.info}</span>
+                            )}
+                          </>)
+                        : '---')}
                 </div>
               </div>
             </CardHeader>
