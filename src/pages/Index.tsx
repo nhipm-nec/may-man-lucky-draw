@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,6 +84,17 @@ const Index = () => {
 
   // Thêm state cho dialog xoá
   const [deleteWinnerIndex, setDeleteWinnerIndex] = useState<number|null>(null);
+
+  useEffect(() => {
+    // Remove old style if exists
+    const oldStyle = document.getElementById('dynamic-font-family');
+    if (oldStyle) oldStyle.remove();
+    // Create new style
+    const style = document.createElement('style');
+    style.id = 'dynamic-font-family';
+    style.innerHTML = `body { font-family: '${fontFamily}', sans-serif !important; }`;
+    document.head.appendChild(style);
+  }, [fontFamily]);
 
   // Function to get prize icon
   const getPrizeIcon = (prizeName: string) => {
@@ -577,10 +587,16 @@ const Index = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Inter">Inter</SelectItem>
-                              <SelectItem value="Roboto">Roboto</SelectItem>
-                              <SelectItem value="Poppins">Poppins</SelectItem>
-                              <SelectItem value="Nunito">Nunito</SelectItem>
+                              <SelectItem value="Inter" className="font-preview-Inter">Inter</SelectItem>
+                              <SelectItem value="Roboto" className="font-preview-Roboto">Roboto</SelectItem>
+                              <SelectItem value="Poppins" className="font-preview-Poppins">Poppins</SelectItem>
+                              <SelectItem value="Nunito" className="font-preview-Nunito">Nunito</SelectItem>
+                              <SelectItem value="Montserrat" className="font-preview-Montserrat">Montserrat</SelectItem>
+                              <SelectItem value="Open Sans" className="font-preview-OpenSans">Open Sans</SelectItem>
+                              <SelectItem value="Lobster" className="font-preview-Lobster">Lobster</SelectItem>
+                              <SelectItem value="Patrick Hand" className="font-preview-PatrickHand">Patrick Hand</SelectItem>
+                              <SelectItem value="Be Vietnam Pro" className="font-preview-BeVietnamPro">Be Vietnam Pro</SelectItem>
+                              <SelectItem value="Huninn" className="font-preview-Huninn">Huninn</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

@@ -1,4 +1,4 @@
-
+@import './fonts.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -166,3 +166,27 @@
 .animate-sparkle {
   animation: sparkle 1.5s ease-in-out infinite;
 }
+
+/* Preload all font-families for font preview in dropdown */
+.font-preview-Inter { font-family: 'Inter', sans-serif !important; }
+.font-preview-Roboto { font-family: 'Roboto', sans-serif !important; }
+.font-preview-Poppins { font-family: 'Poppins', sans-serif !important; }
+.font-preview-Nunito { font-family: 'Nunito', sans-serif !important; }
+.font-preview-DancingScript { font-family: 'Dancing Script', cursive !important; }
+.font-preview-Pacifico { font-family: 'Pacifico', cursive !important; }
+.font-preview-Caveat { font-family: 'Caveat', cursive !important; }
+.font-preview-Kalam { font-family: 'Kalam', cursive !important; }
+.font-preview-PatrickHand { font-family: 'Patrick Hand', cursive !important; }
+.font-preview-Satisfy { font-family: 'Satisfy', cursive !important; }
+.font-preview-IndieFlower { font-family: 'Indie Flower', cursive !important; }
+.font-preview-BeVietnamPro { font-family: 'Be Vietnam Pro', sans-serif !important; }
+.font-preview-Quicksand { font-family: 'Quicksand', sans-serif !important; }
+.font-preview-Baloo2 { font-family: 'Baloo 2', cursive !important; }
+.font-preview-FiraSans { font-family: 'Fira Sans', sans-serif !important; }
+.font-preview-Lora { font-family: 'Lora', serif !important; }
+.font-preview-Merriweather { font-family: 'Merriweather', serif !important; }
+.font-preview-Montserrat { font-family: 'Montserrat', sans-serif !important; }
+.font-preview-Lobster { font-family: 'Lobster', cursive !important; }
+.font-preview-Sacramento { font-family: 'Sacramento', cursive !important; }
+.font-preview-OpenSans { font-family: 'Open Sans', sans-serif !important; }
+.font-preview-Huninn { font-family: 'Huninn', sans-serif !important; }
