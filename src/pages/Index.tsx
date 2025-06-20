@@ -492,7 +492,7 @@ const Index = () => {
       
       {/* Title section - full width, always stretches across the web */}
       <div className="w-full mt-4 px-2">
-        <h1 className="w-full text-center break-words text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center justify-center gap-2 lg:gap-3" style={{ color: appTitleColor }}>
+        <h1 className="w-full text-center break-words text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold flex items-center justify-center gap-2 lg:gap-3" style={{ color: appTitleColor, fontFamily }}>
           <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
           {appTitle}
           <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 lg:w-9 lg:h-9 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12" />
@@ -520,7 +520,7 @@ const Index = () => {
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle className="text-xl flex items-center gap-2">
+                  <DialogTitle className="text-xl flex items-center gap-2" style={{ fontFamily }}>
                     <Settings size={24} />
                     Cài đặt
                   </DialogTitle>
@@ -532,7 +532,7 @@ const Index = () => {
                     {/* Upload người dùng */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
+                        <CardTitle className="flex items-center gap-2 text-lg" style={{ fontFamily }}>
                           <Upload size={20} />
                           Upload người chơi
                         </CardTitle>
@@ -571,7 +571,7 @@ const Index = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Tùy chỉnh giao diện */}
                     <Card>
-                      <CardHeader className="pb-3">
+                      <CardHeader className="pb-3" style={{ fontFamily }}>
                         <CardTitle className="text-lg">Tùy chỉnh giao diện</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -587,22 +587,6 @@ const Index = () => {
                               type="color"
                               value={appTitleColor}
                               onChange={(e) => setAppTitleColor(e.target.value)}
-                              className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-bold">Mô tả</Label>
-                          <div className="flex gap-2">
-                            <Input 
-                              value={appSubtitle} 
-                              onChange={(e) => setAppSubtitle(e.target.value)}
-                              className="bg-gray-50 border-gray-200 rounded-lg flex-1 font-bold"
-                            />
-                            <input
-                              type="color"
-                              value={appSubtitleColor}
-                              onChange={(e) => setAppSubtitleColor(e.target.value)}
                               className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
                             />
                           </div>
@@ -694,7 +678,7 @@ const Index = () => {
                     {/* Quản lý giải thưởng */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
+                        <CardTitle className="flex items-center gap-2 text-lg" style={{ fontFamily }}>
                           <Gift size={20} />
                           Quản lý giải thưởng
                         </CardTitle>
