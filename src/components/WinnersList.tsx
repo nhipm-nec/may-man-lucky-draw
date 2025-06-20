@@ -44,7 +44,7 @@ const WinnersList = ({ currentPrize, allPrizes, users, winnerColor, cardBgColor,
         <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="flex items-center gap-2 text-lg">
             {getIcon(currentPrize.name)}
-            Người thắng {currentPrize.name}
+            Winners of {currentPrize.name}
           </CardTitle>
           <Badge variant="outline" className="w-fit border-violet-300 text-violet-600">
             {currentPrize.winners.length}/{currentPrize.quantity}
@@ -93,7 +93,7 @@ const WinnersList = ({ currentPrize, allPrizes, users, winnerColor, cardBgColor,
           ) : (
             <div className="text-center py-8 text-gray-500 h-full flex flex-col items-center justify-center">
               <Award size={32} className="mx-auto mb-2 opacity-50" />
-              <p>Chưa có người thắng</p>
+              <p>No winners yet</p>
             </div>
           )}
         </CardContent>

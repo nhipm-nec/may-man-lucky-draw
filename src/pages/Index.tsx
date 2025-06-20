@@ -70,7 +70,7 @@ const Index = () => {
   const [appSubtitle, setAppSubtitle] = useState('Chương trình quay số may mắn');
   const [appSubtitleColor, setAppSubtitleColor] = useState('#6b7280');
   const [luckyNumberLabel, setLuckyNumberLabel] = useState('Số may mắn');
-  const [winnerLabel, setWinnerLabel] = useState('Người chiến thắng');
+  const [winnerLabel, setWinnerLabel] = useState('Winner');
   const [drawButtonText, setDrawButtonText] = useState('Quay số');
   const [drawingText, setDrawingText] = useState('Đang quay...');
 
@@ -572,7 +572,9 @@ const Index = () => {
                     {/* Tùy chỉnh giao diện */}
                     <Card>
                       <CardHeader className="pb-3" style={{ fontFamily }}>
-                        <CardTitle className="text-lg">Tùy chỉnh giao diện</CardTitle>
+                        <CardTitle className="text-lg" style={{ fontFamily }}>
+                          Tùy chỉnh giao diện
+                        </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div>
@@ -811,7 +813,7 @@ const Index = () => {
               }
             }}>
               <SelectTrigger className="w-60 sm:w-72 lg:w-80 xl:w-96 2xl:w-[28rem] bg-transparent border-0 shadow-none text-lg sm:text-xl lg:text-xl xl:text-2xl 2xl:text-3xl font-bold flex items-center justify-center gap-2 focus:ring-0 focus:border-0 outline-none" style={{ color: prizeColor, boxShadow: 'none', border: 'none' }}>
-               <SelectValue placeholder="Giải thưởng" />
+               <SelectValue placeholder="Chọn Giải" />
                 <SelectValue>
                   <div className="flex items-center gap-2">
                     {getPrizeIcon(currentPrize.name, prizeColor)}
@@ -895,7 +897,7 @@ const Index = () => {
         <div className="px-4 py-2 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Gift size={20} />
-            Người thắng {currentPrize.name}
+            Winners {currentPrize.name}
             <Badge variant="outline" className="ml-auto border-violet-300 text-violet-600">
               {currentPrize.winners.length}/{currentPrize.quantity}
             </Badge>
@@ -971,7 +973,7 @@ const Index = () => {
           ) : (
             <div className="text-center py-6 text-gray-500 flex flex-col items-center justify-center">
               <Gift size={32} className="mx-auto mb-2 opacity-50" />
-              <p>Chưa có người thắng</p>
+              <p>No winners yet</p>
             </div>
           )}
         </div>
