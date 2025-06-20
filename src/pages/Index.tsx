@@ -127,10 +127,10 @@ const Index = () => {
     setWinnerName(winner.name);
     setIsDrawing(false);
     
-    // Update prize winners
+    // Update prize winners - add new winner to the BEGINNING of the array
     const updatedPrizes = prizes.map(prize => 
       prize.id === currentPrize.id 
-        ? { ...prize, winners: [...prize.winners, winner.name] }
+        ? { ...prize, winners: [winner.name, ...prize.winners] } // Add to beginning instead of end
         : prize
     );
     setPrizes(updatedPrizes);
@@ -144,7 +144,6 @@ const Index = () => {
     setTimeout(() => setShowConfetti(false), 3000);
   };
 
-  // Prize management functions
   const addPrize = () => {
     if (!newPrizeName.trim() || newPrizeQuantity < 1) {
       toast.error('Vui lòng nhập tên giải thưởng và số lượt quay hợp lệ!');
@@ -799,7 +798,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Winners List - 25% height */}
+      {/* Winners List - 25% height with scrolling */}
       <div className="bg-white/90 backdrop-blur-sm border-t border-gray-200 flex flex-col" style={{ flex: '0 0 25%' }}>
         <div className="p-4 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-2 text-lg font-semibold">
