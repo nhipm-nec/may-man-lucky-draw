@@ -90,8 +90,24 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground font-sans;
+  }
+  
+  /* Apply different fonts to different elements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+  
+  .font-title {
+    @apply font-display font-bold;
+  }
+  
+  .font-handwriting {
+    @apply font-handwriting;
+  }
+  
+  .font-playful {
+    @apply font-playful;
   }
 }
 

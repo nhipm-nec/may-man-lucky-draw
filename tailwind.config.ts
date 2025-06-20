@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,6 +19,13 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Nunito', 'Inter', 'system-ui', 'sans-serif'],
+				'display': ['Poppins', 'Nunito', 'sans-serif'],
+				'handwriting': ['Dancing Script', 'Kalam', 'Caveat', 'cursive'],
+				'playful': ['Pacifico', 'Dancing Script', 'cursive'],
+				'casual': ['Kalam', 'Caveat', 'cursive'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
